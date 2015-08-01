@@ -164,10 +164,11 @@ def main():
 	res = res_setup()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
 	pygame.mouse.set_visible(False)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	clock = pygame.time.Clock()
+	pyttsx_engine = pyttsx.init()
 	screen.fill(constants.BLUE)
 	
 	# MENU LOOP
@@ -178,13 +179,14 @@ def main():
 		game_active = True
 		
 	# CREATE GAME OBJECT FROM res AND lib AND num_players
-	game = Game(screen, res, lib, num_players)
+	game = Game(screen, res, lib, num_players, pyttsx_engine)
 		
 	# GAME LOOP
 	while (game_active):
 	
 		# update display, pump event queue
 		pygame.display.flip()
+		pyttsx_engine.runAndWait()
 		
 		# check for ESCAPE key
 		for event in pygame.event.get():

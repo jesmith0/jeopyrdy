@@ -1,8 +1,8 @@
-import pygame, constants, random
+import pygame, constants, random, pyttsx
 
 class Game:
 
-	def __init__(self, screen, res, lib, num_players):
+	def __init__(self, screen, res, lib, num_players, pyttsx_engine):
 	
 		self.screen = screen	# screen surface
 		
@@ -46,6 +46,7 @@ class Game:
 		self.clue_timeout = False
 		self.buzzin_timeout = False
 		self.button_raised = False
+		self.tts_done = False
 		
 		self.show_main = True
 		self.show_clue = False
@@ -60,6 +61,8 @@ class Game:
 		self.value_surf = self.__generate_value_surf()			# returns a list of two lists of value surfaces
 		self.cat_surf = self.__generate_cat_surf()				# returns a list of three lists of category surfaces
 		
+		self.pyttsx_engine = pyttsx_engine
+		
 		# LOOP THEME
 		self.theme_sound.play(-1)
 		self.board_fill.play()
@@ -67,12 +70,13 @@ class Game:
 		# INITIAL UPDATE
 		self.update()
 		
+		
 	def update(self, input = None):
 	
 		### CHANGE STATES ###
 		
 		# buzz delay
-		if self.game_clock >= 1000: delay = True
+		if self.game_clock >= 1500: delay = True
 		else: delay = False
 		
 		# TIMER
@@ -147,6 +151,7 @@ class Game:
 					# update state
 					self.show_clue = False
 					self.buzzed_in = True
+					self.tts_done = False
 					self.game_clock = 0		# reset game clock for timer on show_clue
 				
 			elif self.buzzed_in:
@@ -160,7 +165,7 @@ class Game:
 					self.button_raised = True
 			
 				# ONLY BUZZED PLAYER MAY CONTINUE
-				elif self.button_raised and int(input[self.buzzed_player][0]) == 1:
+				elif self.button_raised and int(input[self.buzzed_player][0]) == 1 and delay:
 				
 					# update state
 					self.buzzed_in = False
@@ -185,6 +190,7 @@ class Game:
 					self.show_resp = False
 					self.clue_timeout = False
 					self.buzzin_timeout = False
+					self.tts_done = False
 					self.game_clock = 0
 					
 					# update clue array
@@ -478,17 +484,21 @@ class Game:
 	def __display_clue_resp(self, show_clue, buzzed_in, show_resp):
 	
 		self.screen.fill(constants.BLUE)
+		
+		clue_surf = self.__generate_text_surf((self.cat[self.cur_round][self.cursor_loc[0]][0]).upper())
 	
 		# if clue display
 		if show_clue:
 			char_surf = self.alex_surf
 			text_surf = self.__generate_text_surf(self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
+			tts = self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
 		elif buzzed_in:
 			char_surf = self.__generate_char_surf(self.buzzed_player)
 			text_surf = self.__generate_text_surf(self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
 		elif show_resp:
 			char_surf = self.__generate_char_surf(self.buzzed_player)
 			text_surf = self.__generate_text_surf(self.resp[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
+			tts = self.resp[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
 		
 		# scale character surface
 		scaled_image = pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3))
@@ -496,7 +506,13 @@ class Game:
 		# blit character and text to screen
 		self.__blit_alpha(self.screen, scaled_image, (0, constants.DISPLAY_RES[1]-scaled_image.get_height()), 100)
 		self.screen.blit(char_surf, (0, constants.DISPLAY_RES[1]-char_surf.get_height()))
+		self.screen.blit(clue_surf, (200, -200))
 		self.screen.blit(text_surf, (constants.DISPLAY_RES[0]/2 - constants.BOARD_SIZE[0]/2,0))
+		
+		# read clue/response
+		if (show_clue or show_resp) and not self.tts_done:
+			self.pyttsx_engine.say(tts)
+			self.tts_done = True
 	
 	# BLIT MAIN DISPLAY TO SCREEN
 	def __display_main(self):
