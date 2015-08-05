@@ -1,7 +1,10 @@
-import pygame, os					# FOR GUI
-import usb.core, usb.util			# FOR USB BUZZER INTERFACING
-import random, constants, urllib2	# FOR GENERATING A CLUE LIBRARY
-from game import *					# Game OBJECT CLASS
+import pygame, os							# FOR GUI
+import usb.core, usb.util					# FOR USB BUZZER INTERFACING
+import random, constants, urllib, urllib2	# FOR GENERATING A CLUE LIBRARY
+from game import *							# Game OBJECT CLASS
+
+# GLOBAL VARIABLES
+image_count = 0
 
 def buzz_setup(buzz_dev):
 
@@ -49,22 +52,54 @@ def gamify_input(buzz_input):
 
 def scrub_text(text):
 
+	# remove static tags
 	new_text = text.replace('&amp;', '&')
 	new_text = new_text.replace('<br />', ' ')
+	new_text = new_text.replace('<br/>', ' ')
 	new_text = new_text.replace('<i>','')
 	new_text = new_text.replace('</i>','')
 	new_text = new_text.replace('<u>','')
 	new_text = new_text.replace('</u>','')
+	new_text = new_text.replace('</em>','')
+	new_text = new_text.replace('</a>','')
 	
+	# remove emphasis tag
+	if (not new_text.find('<em') == -1):
+		new_text = new_text[:new_text.find('<em')] + new_text[new_text.find('>')+2:]
+	
+	# for each hyperlink tag
+	while (not new_text.find('<a') == -1):
+			
+		# removes every hyperlink reference tag from text
+		new_text = new_text[:new_text.find('<a')] + new_text[new_text.find('">')+2:]
+		
 	return new_text
 
-	# TODO: ADD SUPPORT FOR UNDERLINE AND ITALICS
+def get_resource(text, num):
+
+	if not text.find('<a') == -1:
+	
+		# attempt to pull image from j-archive.com
+		try:
+			res = urllib.urlretrieve(text[text.find("http://"):text.find('.jpg')+4], constants.TEMP_PATH + "temp" + str(num) + ".jpg")
+			print res
+			return res
+		except:
+			# google image search
+			print "url non-responsive"
+	
+	return None
+	
+	# TODO: DETECT 404 ERRORS
 	
 def lib_setup():
 
 	cat = []
 	clue = []
 	resp = []
+	res = []
+	
+	res_count = 0
 
 	# RANDOMLY GENERATE USEABLE GAME NUMBER
 	game_num = str(random.randint(1, constants.MAX_GAME))
@@ -73,49 +108,45 @@ def lib_setup():
 	
 	# REDUCE WEBPAGE TO RELEVANT LINES (also sets display window caption)
 	for line in urllib2.urlopen(constants.WEB_ADDR_CLUE + game_num).readlines():
-		if 'class="clue_text">' in line: clue.append(scrub_text(line))
-		elif 'class="category_name">' in line: cat.append(scrub_text(line))
+		if 'class="clue_text">' in line:
+			clue.append(line)
+			res.append(None)
+		elif 'class="category_name">' in line: cat.append(line)
 		elif 'id="game_title">' in line: pygame.display.set_caption(line[line.find('id="game_title"><h1>')+20:line.find('</h1>')].upper())
 		
 	for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
-		if 'class="correct_response">' in line: resp.append(scrub_text(line))
+		if 'class="correct_response">' in line: resp.append(line)
 	
 	# FORMAT LIBRARY INFO
 	for i in range(len(clue)):
-		clue[i] = clue[i][clue[i].find('class="clue_text">')+18:clue[i].find('</td>')]
+	
+		unscrubed_clue = clue[i][clue[i].find('class="clue_text">')+18:clue[i].find('</td>')]
+		
+		hold_res = get_resource(unscrubed_clue, res_count)
+		if hold_res: res_count += 1
+		
+		res[i] = hold_res
+		clue[i] = scrub_text(unscrubed_clue)
 		
 	for i in range(len(cat)):
-		cat[i] = cat[i][cat[i].find('class="category_name">')+22:cat[i].find('</td>')]
+		cat[i] = scrub_text(cat[i][cat[i].find('class="category_name">')+22:cat[i].find('</td>')])
 		
 	for i in range(len(resp)):
-		resp[i] = resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')]
+		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
 	
 	# RETURN LIBRARY
 	return [cat, clue, resp]
 	
-	# TODO: ENSURE UNSEENS CLUES ARE CONSIDERED
+	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
 	
 def res_setup():
 
 	# LOAD IMAGES
 	images = []
 	images.append(pygame.image.load(constants.IMAGE_PATH + "alex.png"))
-	images.append(pygame.image.load(constants.IMAGE_PATH + "chars2.png"))
+	images.append(pygame.image.load(constants.IMAGE_PATH + "chars.png"))
 	images.append(pygame.image.load(constants.IMAGE_PATH + "logo.png"))
 	images.append(pygame.image.load(constants.IMAGE_PATH + "board.png"))
-	
-	# LOAD FONTS
-	korinna_font = []
-	helvetica_font = []
-	digital_font = []
-	
-	for i in range(1, 65):
-		korinna_font.append(pygame.font.Font(constants.FONT_PATH + "korinna.ttf", i))
-		helvetica_font.append(pygame.font.Font(constants.FONT_PATH + "helvetica.ttf", i))
-		digital_font.append(pygame.font.Font(constants.FONT_PATH + "digital.ttf", i))
-		
-	
-	fonts = [korinna_font, helvetica_font, digital_font]
 	
 	# LOAD MUSIC
 	music = []
@@ -134,9 +165,7 @@ def res_setup():
 	
 	print "RESOURCES (setup):\tOK"
 	
-	return [images, fonts, music]
-	
-	# SHOULD INCLUDE: images, fonts, music
+	return [images, music]
 	
 def main():
 
@@ -164,7 +193,7 @@ def main():
 	res = res_setup()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	# screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
 	pygame.mouse.set_visible(False)
 	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	clock = pygame.time.Clock()
