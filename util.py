@@ -90,7 +90,7 @@ def generate_category_surface(category_list):
 			cat_surf[-1].append(generate_text_surface(cat[0], width, height, font_size, color, "helvetica", constants.DARK_BLUE))
 			
 	return cat_surf
-	
+
 def generate_text_surface(text, max_width = constants.BOARD_SIZE[0], max_height = constants.BOARD_SIZE[1],
 							font_size = 40, color = constants.WHITE, font_fam = "helvetica", color_key = constants.BLUE):
 	
@@ -139,8 +139,34 @@ def generate_text_surface(text, max_width = constants.BOARD_SIZE[0], max_height 
 		i += 1
 			
 	return text_surf
+
+def generate_correct_surface():
+
+	main_surf = pygame.Surface(constants.BOARD_SIZE)
+	main_center_loc = [constants.BOARD_SIZE[0]/2, constants.BOARD_SIZE[1]/2]
+
+	correct_text_surf = generate_text_surface("CORRECT")
+	incorrect_text_surf = generate_text_surface("INCORRECT")
 	
+	orange_rect_surf = pygame.Surface((100, 50)).convert()
+	green_rect_surf = pygame.Surface((100, 50)).convert()
+	
+	main_surf.fill(constants.BLUE)
+	main_surf.set_colorkey(constants.BLUE)
+	main_surf.set_alpha(255)
+	
+	orange_rect_surf.fill(constants.ORANGE)
+	green_rect_surf.fill(constants.GREEN)
+	
+	main_surf.blit(orange_rect_surf, (main_center_loc[0]-100, main_center_loc[1]-50))
+	main_surf.blit(green_rect_surf, (main_center_loc[0]-100, main_center_loc[1]+50))
+	main_surf.blit(correct_text_surf, (100, -20))
+	main_surf.blit(incorrect_text_surf, (100, 80))
+	
+	return main_surf
+
 # CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/
+# create surface with given opacity
 def blit_alpha(target, source, location, opacity):
 
 	x = location[0]
@@ -150,3 +176,29 @@ def blit_alpha(target, source, location, opacity):
 	temp.blit(source, (0, 0))
 	temp.set_alpha(opacity)        
 	target.blit(temp, location)
+	
+# GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME
+# assumes list is fully populated
+def gamify_list(list):
+
+	gamified_list = [[],[]]
+	split_list = [list[:len(list)/2], list[len(list)/2:-1]]
+	
+	i = 0
+	for round in split_list:
+	
+		for x in range(6): gamified_list[i].append([])
+	
+		j = 0
+		for item in round:
+			gamified_list[i][j].append(item)
+			
+			if j == 5: j = 0
+			else: j += 1
+		
+		i += 1
+	
+	# add final jeopardy item
+	gamified_list.append([[list[-1]]])
+			
+	return gamified_list

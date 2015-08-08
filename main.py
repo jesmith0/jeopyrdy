@@ -1,6 +1,7 @@
 import pygame, os							# FOR GUI
 import usb.core, usb.util					# FOR USB BUZZER INTERFACING
-import random, constants, urllib, urllib2	# FOR GENERATING A CLUE LIBRARY
+import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
+import constants							# LOCAL CONSTANTS
 from game import *							# Game OBJECT CLASS
 
 # GLOBAL VARIABLES
@@ -193,9 +194,9 @@ def main():
 	res = res_setup()
 	
 	# INITIALIZE SCREEN SURFACE
-	# screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	clock = pygame.time.Clock()
 	pyttsx_engine = pyttsx.init()
 	screen.fill(constants.BLUE)
@@ -237,6 +238,7 @@ def main():
 			if e.args == ('Operation timed out'): continue
 			
 		# send input to game, update
+		print gamify_input(buzz_input)
 		game_active = game.update(gamify_input(buzz_input))
 	
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM

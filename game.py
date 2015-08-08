@@ -24,9 +24,9 @@ class Game:
 		self.char_wrong_sounds = self.music[5]	# play on incorrect response (list of sound objects)
 		
 		# CLUE LIBRARY
-		self.cat = self.__organize_list(lib[0])		# lists are of the following form:
-		self.clue = self.__organize_list(lib[1])	#
-		self.resp = self.__organize_list(lib[2])	# list[round][category][clue
+		self.cat = util.gamify_list(lib[0])		# lists are of the following form:
+		self.clue = util.gamify_list(lib[1])	#
+		self.resp = util.gamify_list(lib[2])	# list[round][category][clue
 		
 		# STATE VARIABLES
 		self.num_players = 4						# determined in menu
@@ -62,6 +62,7 @@ class Game:
 		self.cursor_surf = util.generate_cursor_surface()			# returns a cursor surface
 		self.value_surf = util.generate_value_surface()				# returns a list of two lists of value surfaces
 		self.cat_surf = util.generate_category_surface(self.cat)	# returns a list of three lists of category surfaces
+		self.correct_surf = util.generate_correct_surface()			# returns a surface to choose between 'correct/incorrect'
 		
 		self.pyttsx_engine = pyttsx_engine
 		
@@ -209,7 +210,8 @@ class Game:
 			elif self.check_resp:
 			
 				# ONLY BUZZED PLAYER MAY CONTINUE
-				if int(input[self.buzzed_player][0]) == 1 and delay:
+				# if int(input[self.buzzed_player][0]) == 1 and delay:
+				if (int(input[self.buzzed_player][2]) == 1 or int(input[self.buzzed_player][3]) == 1): # and delay:
 				
 					# update state
 					self.check_resp = False
@@ -217,10 +219,12 @@ class Game:
 					self.game_clock = 0
 					
 					# if correct
-					if self.menu_cursor_loc == 0:
+					# if self.menu_cursor_loc == 0:
+					if int(input[self.buzzed_player][2]) == 1:
 						self.players[self.buzzed_player].add_to_score(constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]])
 						self.active_player = self.buzzed_player
-					else:
+					#else:
+					elif int(input[self.buzzed_player][3]) == 1:
 						self.players[self.buzzed_player].sub_from_score(constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]])
 						self.char_wrong_sounds[self.buzzed_player].play()
 						
@@ -248,32 +252,6 @@ class Game:
 	def tick_game_clock(self, ms):
 	
 		self.game_clock += ms
-	
-	# ORGANIZE LIST FOR SIMPLER USE THROUGHOUT GAME
-	# assumes list is full
-	def __organize_list(self, list):
-	
-		organized_list = [[],[]]
-		split_list = [list[:len(list)/2], list[len(list)/2:-1]]
-		
-		i = 0
-		for round in split_list:
-		
-			for x in range(6): organized_list[i].append([])
-		
-			j = 0
-			for item in round:
-				organized_list[i][j].append(item)
-				
-				if j == 5: j = 0
-				else: j += 1
-			
-			i += 1
-		
-		# add final jeopardy item
-		organized_list.append([[list[-1]]])
-				
-		return organized_list
 	
 	# GENERATES A LIST OF TWO LISTS
 	# each list corresponds to a different round
@@ -359,7 +337,7 @@ class Game:
 		
 		# read clue/response
 		if (show_clue or show_resp) and not self.tts_done:
-			self.pyttsx_engine.say(tts)
+			self.pyttsx_engine.say(tts.decode('utf-8'))
 			self.tts_done = True
 	
 	# BLIT MAIN DISPLAY TO SCREEN
@@ -394,8 +372,8 @@ class Game:
 	# correct = 0, incorrect = 1
 	def __display_check(self):
 
-		correct_surf = util.generate_text_surface('CORRECT')
-		incorrect_surf = util.generate_text_surface('INCORRECT')
+		#correct_surf = util.generate_text_surface('CORRECT')
+		#incorrect_surf = util.generate_text_surface('INCORRECT')
 		
 		#char_surf = self.__generate_char_surf(self.buzzed_player)
 		char_surf = self.players[self.buzzed_player].char_surface
@@ -403,13 +381,14 @@ class Game:
 		
 		self.screen.fill(constants.BLUE)
 		
-		if self.menu_cursor_loc == 0: active_surf = correct_surf
-		else: active_surf = incorrect_surf
+		#if self.menu_cursor_loc == 0: active_surf = correct_surf
+		#else: active_surf = incorrect_surf
 		
 		util.blit_alpha(self.screen, scaled_image, (0, constants.DISPLAY_RES[1]-scaled_image.get_height()), 100)
 		self.screen.blit(char_surf, (0, constants.DISPLAY_RES[1]-char_surf.get_height()))
 		
-		self.screen.blit(active_surf, (constants.DISPLAY_RES[0]/2-constants.BOARD_SIZE[0]/2,0))
+		#self.screen.blit(active_surf, (constants.DISPLAY_RES[0]/2-constants.BOARD_SIZE[0]/2,0))
+		self.screen.blit(self.correct_surf, (constants.DISPLAY_RES[0]/2-constants.BOARD_SIZE[0]/2,0))
 	
 	# UPDATE CURSON BASED ON BUTTON DIRECTION
 	# up = 1, right = 2, left = 3, down = 4
