@@ -2,6 +2,7 @@ import pygame, os							# FOR GUI
 import usb.core, usb.util					# FOR USB BUZZER INTERFACING
 import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
 import constants							# LOCAL CONSTANTS
+import library								# Block OBJECT CLASS
 from game import *							# Game OBJECT CLASS
 
 # GLOBAL VARIABLES
@@ -93,7 +94,7 @@ def get_resource(text, num):
 	
 	# TODO: DETECT 404 ERRORS
 	
-def lib_setup():
+def parse_jarchive():
 
 	cat = []
 	clue = []
@@ -108,13 +109,15 @@ def lib_setup():
 	print game_num
 	
 	# REDUCE WEBPAGE TO RELEVANT LINES (also sets display window caption)
+	# retrieves categories and clues
 	for line in urllib2.urlopen(constants.WEB_ADDR_CLUE + game_num).readlines():
 		if 'class="clue_text">' in line:
 			clue.append(line)
 			res.append(None)
 		elif 'class="category_name">' in line: cat.append(line)
 		elif 'id="game_title">' in line: pygame.display.set_caption(line[line.find('id="game_title"><h1>')+20:line.find('</h1>')].upper())
-		
+	
+	# retrieves responses
 	for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
 		if 'class="correct_response">' in line: resp.append(line)
 	
@@ -139,34 +142,39 @@ def lib_setup():
 	return [cat, clue, resp]
 	
 	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
-	
-def res_setup():
 
-	# LOAD IMAGES
-	images = []
-	images.append(pygame.image.load(constants.IMAGE_PATH + "alex.png"))
-	images.append(pygame.image.load(constants.IMAGE_PATH + "chars.png"))
-	images.append(pygame.image.load(constants.IMAGE_PATH + "logo.png"))
-	images.append(pygame.image.load(constants.IMAGE_PATH + "board.png"))
+def gen_lib_object(parsed):
+
+	cat = util.gamify_list(parsed[0])
+	clue = util.gamify_list(parsed[1])
+	resp = util.gamify_list(parsed[2])
 	
-	# LOAD MUSIC
-	music = []
-	music.append(pygame.mixer.Sound(constants.MUSIC_PATH + "theme.ogg"))
-	music.append(pygame.mixer.Sound(constants.MUSIC_PATH + "dailydouble.ogg"))
-	music.append(pygame.mixer.Sound(constants.MUSIC_PATH + "ringin.ogg"))
-	music.append(pygame.mixer.Sound(constants.MUSIC_PATH + "timeout.ogg"))
-	music.append(pygame.mixer.Sound(constants.MUSIC_PATH + "boardfill.ogg"))
+	lib = []
+
+	# each round is its own list of block objects
+	for i in range(len(clue)):
 	
-	wrong = []
-	wrong.append(pygame.mixer.Sound(constants.MUSIC_PATH + "alex_wrong.ogg"))
-	wrong.append(pygame.mixer.Sound(constants.MUSIC_PATH + "sean_wrong.ogg"))
-	wrong.append(pygame.mixer.Sound(constants.MUSIC_PATH + "burt_wrong.ogg"))
-	wrong.append(pygame.mixer.Sound(constants.MUSIC_PATH + "french_wrong.ogg"))
-	music.append(wrong)
+		lib.append([])
+		
+		for j in range(len(clue[i])):
+			lib[-1].append([])
+			for k in range(len(clue[i][j])):
+				lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]), library.Response(resp[i][j][k])))
+		
+	return lib
 	
-	print "RESOURCES (setup):\tOK"
+def lib_setup():
+
+	# primitive solution to ensure no unseen clues
+	parse_valid = False
 	
-	return [images, music]
+	while (not parse_valid):
+		parsed_data = parse_jarchive()
+		if len(parsed_data[1]) == 61: parse_valid = True
+	
+	print "LIBRARY (setup):\tOK"
+	
+	return gen_lib_object(parsed_data)
 	
 def main():
 
@@ -179,27 +187,22 @@ def main():
 	try: buzz_listener = buzz_setup(buzz_dev)
 	except: print "BUZZERS (setup):\tFAILED"
 	
-	# SETUP CLUE LIBRARY
-	# primitive solution to ensure no unseen clues
-	lib_valid = False
-	while (not lib_valid):
-		lib = lib_setup()
-		if len(lib[1]) == 61: lib_valid = True
-	print "LIBRARY (setup):\tOK"
-	
-	# INITIALIZE ALL IMPORTED PYGAME MODULES
+	# INITIALIZE ALL IMPORTED PYGAME/PYTTSX MODULES
 	pygame.init()
+	pyttsx_engine = pyttsx.init()
 	
-	# SETUP GAME RESOURCES
-	res = res_setup()
+	# CREATE CLOCK OBJECT
+	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
-	clock = pygame.time.Clock()
-	pyttsx_engine = pyttsx.init()
+	
 	screen.fill(constants.BLUE)
+	
+	# SETUP CLUE LIBRARY
+	lib = lib_setup()
 	
 	# MENU LOOP
 	while (menu_active):
@@ -209,7 +212,7 @@ def main():
 		game_active = True
 		
 	# CREATE GAME OBJECT FROM res AND lib AND num_players
-	game = Game(screen, res, lib, num_players, pyttsx_engine)
+	game = Game(screen, lib, num_players, pyttsx_engine)
 		
 	# GAME LOOP
 	while (game_active):

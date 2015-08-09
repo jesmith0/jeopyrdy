@@ -1,54 +1,24 @@
 import pygame, random, pyttsx
-import constants, util, player
+import constants, util, player, state
 
 class Game:
 
-	def __init__(self, screen, res, lib, num_players, pyttsx_engine):
+	def __init__(self, screen, lib, num_players, pyttsx_engine):
 	
-		self.screen = screen	# screen surface
-		
-		# GAME RESOURCES
-		self.images = res[0]
-		self.alex_surf = self.images[0]		# image of Alex Trebek
-		self.chars_surf = self.images[1]	# image of all four player characters
-		self.logo_surf = self.images[2]		# image of Jeopardy logo
-		self.board_surf = None				# generated at the end of initialization
-		self.value_surf = None				# generated at the end of initialization
-		
-		self.music = res[1]
-		self.theme_sound = self.music[0]		# theme song played on loop
-		self.dd_sound = self.music[1]			# play when daily double clue displayed
-		self.ringin_sound = self.music[2]		# play when a player buzzes in
-		self.timeout_sound = self.music[3]		# play when clue / player times outs
-		self.board_fill = self.music[4]			# play at beginning of main rounds
-		self.char_wrong_sounds = self.music[5]	# play on incorrect response (list of sound objects)
-		
-		# CLUE LIBRARY
-		self.cat = util.gamify_list(lib[0])		# lists are of the following form:
-		self.clue = util.gamify_list(lib[1])	#
-		self.resp = util.gamify_list(lib[2])	# list[round][category][clue
+		self.screen = screen
+		self.lib = lib
 		
 		# STATE VARIABLES
+		self.state = state.State()
 		self.num_players = 4						# determined in menu
 		self.cur_round = 0							# DJ = 1, FJ = 2
 		self.cursor_loc = [0,0]						# game cursor location
-		self.active_player = 0						# 0-3 players
-		self.buzzed_player = 0						# player currently buzzed in
-		self.clue_arr = self.__generate_clue_arr()	# each list corresponds to a round
 		self.points = [0, 0, 0, 0]					# each players points
-		self.menu_cursor_loc = 0					# cursor for menu and misc
+		self.cur_bet = 0
+		self.cur_block = self.lib[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
 		
 		self.game_clock = 0
-		self.clue_timeout = False
-		self.buzzin_timeout = False
-		self.button_raised = False
-		self.tts_done = False
-		
-		self.show_main = True
-		self.show_clue = False
-		self.show_resp = False
-		self.check_resp = False
-		self.buzzed_in = False
+		self.dd = False
 		
 		# PLAYER OBJECTS
 		self.players = []
@@ -56,225 +26,129 @@ class Game:
 		for num in range(self.num_players):
 			self.players.append(player.Player(num))
 		
-		# CREATE SURFACES
+		# GENERATE STATIC SURFACES
 		self.board_surf = util.generate_board_surface()				# returns a blank board surface
 		self.blank_board_surf = util.generate_board_surface()		# returns a blank board surface (kept blank)
 		self.cursor_surf = util.generate_cursor_surface()			# returns a cursor surface
 		self.value_surf = util.generate_value_surface()				# returns a list of two lists of value surfaces
-		self.cat_surf = util.generate_category_surface(self.cat)	# returns a list of three lists of category surfaces
 		self.correct_surf = util.generate_correct_surface()			# returns a surface to choose between 'correct/incorrect'
 		
 		self.pyttsx_engine = pyttsx_engine
 		
+		# SET DAILY DOUBLES
+		self.__set_dailydoubles()
+		
 		# LOOP THEME
-		self.theme_sound.play(-1)
-		self.board_fill.play()
+		constants.THEME_SOUND.play(-1)
+		constants.BOARDFILL_SOUND.play()
 		
 		# INITIAL UPDATE
 		self.update()
 		
+	def tick_game_clock(self, ms): self.game_clock += ms
 		
 	def update(self, input = None):
 	
-		### CHANGE STATES ###
-		
-		# buzz delay
-		if self.game_clock >= 900: delay = True
-		else: delay = False
-		
-		# TIMER
-		if self.show_clue:
-		
-			# about 10 seconds
-			if self.game_clock >= 15000:
-			
-				self.timeout_sound.play()
-			
-				# skip buzz_in state
-				self.show_clue = False
-				self.show_resp = True
-				self.clue_timeout = True
-				self.game_clock = 0
-				#self.buzzed_player = self.active_player
-			
-		elif self.buzzed_in:
-		
-			# about 5 seconds
-			if self.game_clock >= 8000:
-			
-				self.timeout_sound.play()
-			
-				# mark player incorrect
-				self.buzzed_in = False
-				self.show_resp = True
-				self.buzzin_timeout = True
-				self.game_clock = 0
-				#self.buzzed_player = self.active_player
-		
-		# only if there is input
 		if input:
-		
-			if self.show_main:
 			
-				# ONLY ACTIVE PLAYER IN CONTROL ON MAIN SCREEN
-				if int(input[self.active_player][0]) == 1:
+			# MAIN SCREEN GAME LOGIC
+			if self.state.main:
 				
-					if self.clue_arr[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]+1] == 0:
-						
-						if self.show_main:
-						
-							self.show_main = False
-							self.show_clue = True
-							self.game_clock = 0		# reset game clock for timer on show_clue
-						
-				# move cursor
-				elif int(input[self.active_player][1]) == 1: self.__update_cursor_loc(1)	# up = 1
-				elif int(input[self.active_player][2]) == 1: self.__update_cursor_loc(2)	# right = 2
-				elif int(input[self.active_player][3]) == 1: self.__update_cursor_loc(3)	# left = 3
-				elif int(input[self.active_player][4]) == 1: self.__update_cursor_loc(4)	# down = 4
+				if int(input[self.state.active_player][1]) == 1: self.__update_cursor_loc(1)	# up = 1
+				elif int(input[self.state.active_player][2]) == 1: self.__update_cursor_loc(2)	# right = 2
+				elif int(input[self.state.active_player][3]) == 1: self.__update_cursor_loc(3)	# left = 3
+				elif int(input[self.state.active_player][4]) == 1: self.__update_cursor_loc(4)	# down = 4
 				
-			elif self.show_clue:
+				# set current block to correspond with cursor's position
+				self.cur_block = self.lib[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
+				
+				self.game_clock = 0
 			
-				# ANY PLAYER MAY BUZZ IN
-				i = 0
+			# BET SCREEN MAIN LOGIC
+			elif self.state.bet:
+			
+				# determine maximum bet from player score
+				if self.players[self.state.active_player].score <= 1000: max_bet = 1000
+				else: max_bet = self.players[self.state.active_player].score
+			
+				# set maximum bet
+				if self.state.count == 1: self.cur_bet = max_bet
+				
+				# increase/decrease current bet
+				if (int(input[self.state.active_player][1]) or int(input[self.state.active_player][2])) and (self.cur_bet + 100 <= max_bet): self.cur_bet += 100
+				elif (int(input[self.state.active_player][3]) or int(input[self.state.active_player][4])) and (self.cur_bet - 100 >= 0): self.cur_bet -= 100
+				
+				self.game_clock = 0
+			
+			# DISPLAY CLUE SCREEN GAME LOGIC
+			elif self.state.display_clue:
+			
 				buzzed_players = []
-				for buzzer in input[:self.num_players]:
-					if int(buzzer[0]) == 1: buzzed_players.append(i)
-					i += 1
+			
+				# (IF NOT A DAILY DOUBLE) ANY PLAYER MAY BUZZ IN
+				if self.state.dailydouble: buzzed_players.append(self.state.active_player)
+				else:
+					i = 0
+					for buzzer in input[:self.num_players]:
+						if int(buzzer[0]) == 1: buzzed_players.append(i)
+						i += 1
 				
 				# only if someone has buzzed in
 				if len(buzzed_players) > 0:
 				
 					# choose random player, if both buzzed together
-					self.buzzed_player = buzzed_players[random.randint(0, len(buzzed_players)-1)]
+					self.state.set_buzzed_player(buzzed_players[random.randint(0, len(buzzed_players)-1)])
 					
 					# play 'ring in' sound
-					self.ringin_sound.play()
+					if not self.state.dailydouble: constants.BUZZ_SOUND.play()
 					
-					# update state
-					self.show_clue = False
-					self.buzzed_in = True
-					self.tts_done = False
-					self.game_clock = 0		# reset game clock for timer on show_clue
-				
-			elif self.buzzed_in:
+				self.game_clock = 0
 			
-				# requires player to lift button (prevents)
-				#################################################################################
-				### THIS NEEDS TO BE DONE FOR EVERY BUZZ-IN STATE ###############################
-				### IT'S" THE REASON BOARD NAVIGATION CAN BE INFLUENCED BY NON-ACTIVE PLAYERS ###
-				#################################################################################
-				if not self.button_raised and int(input[self.buzzed_player][0]) == 0:
-					self.button_raised = True
+			# DISPLAY RESPONSE SCREEN GAME LOGIC
+			elif self.state.display_resp: pass
 			
-				# ONLY BUZZED PLAYER MAY CONTINUE
-				elif self.button_raised and int(input[self.buzzed_player][0]) == 1 and delay:
-				
-					# update state
-					self.buzzed_in = False
-					self.show_resp = True
-					self.game_clock = 0
-					self.button_raised = False
-				
-			elif self.show_resp:
+			# CHECK RESPONSE SCREEN GAME LOGIC
+			elif self.state.check_resp:
 			
-				# ONLY BUZZED PLAYER MAY CONTINUE
-				if int(input[self.buzzed_player][0]) == 1 and delay:
-				
-					if self.clue_timeout or self.buzzin_timeout: self.show_main = True
-					else: self.check_resp = True
-					
-					# deduct points
-					if self.buzzin_timeout:
-					
-						self.players[self.buzzed_player].sub_from_score(constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]])
-						self.char_wrong_sounds[self.buzzed_player].play()
-					
-					self.show_resp = False
-					self.clue_timeout = False
-					self.buzzin_timeout = False
-					self.tts_done = False
-					self.game_clock = 0
-					
-					# update clue array
-					self.clue_arr[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]+1] = 1
-					
-					# check if round over
-					if self.__check_round():
-					
-						if self.cur_round < 2:
-							self.cur_round += 1
-							self.board_fill.play()
-						else: return False
-					
-			elif self.check_resp:
+				if self.state.count == 0: self.game_clock = 0
 			
-				# ONLY BUZZED PLAYER MAY CONTINUE
-				# if int(input[self.buzzed_player][0]) == 1 and delay:
-				if (int(input[self.buzzed_player][2]) == 1 or int(input[self.buzzed_player][3]) == 1): # and delay:
+				# determine points to add/sub
+				if self.state.dailydouble: points = self.cur_bet
+				else: points = constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]]
 				
-					# update state
-					self.check_resp = False
-					self.show_main = True
-					self.game_clock = 0
-					
-					# if correct
-					# if self.menu_cursor_loc == 0:
-					if int(input[self.buzzed_player][2]) == 1:
-						self.players[self.buzzed_player].add_to_score(constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]])
-						self.active_player = self.buzzed_player
-					#else:
-					elif int(input[self.buzzed_player][3]) == 1:
-						self.players[self.buzzed_player].sub_from_score(constants.POINT_VALUES[self.cur_round][self.cursor_loc[1]])
-						self.char_wrong_sounds[self.buzzed_player].play()
-						
-					self.menu_cursor_loc = 0
-					
-				else:
-					for dir_button in input[self.buzzed_player][1:]:
-						if int(dir_button) == 1:
-							if self.menu_cursor_loc == 0: self.menu_cursor_loc = 1
-							else: self.menu_cursor_loc = 0
-					
+				# player indicates CORRECT
+				if int(input[self.state.buzzed_player][3]):
+				
+					self.players[self.state.buzzed_player].add_to_score(points)
+					self.state.active_player = self.state.buzzed_player
+				
+				# player indicates INCORRECT
+				elif int(input[self.state.buzzed_player][2]) or self.state.buzzed_timeout:
+				
+					self.players[self.state.buzzed_player].sub_from_score(points)
+					constants.WRONG_SOUNDS[self.state.buzzed_player].play()
 			
-		### DISPLAY CHANGES ###
+				# check if round over
+				if self.__check_round():
+				
+					if self.cur_round == 2: return False
+					else:
+						self.cur_round += 1
+						constants.BOARDFILL_SOUND.play()
+	
+		# UPDATE GAME STATE
+		self.state.update(input, self.game_clock, self.cur_block)
 		
-		# blit clues and categories to board surface
-		if self.show_main: self.__display_main()
-		elif self.show_clue: self.__display_clue_resp(self.show_clue, self.buzzed_in, self.show_resp)		
-		elif self.buzzed_in: self.__display_clue_resp(self.show_clue, self.buzzed_in, self.show_resp)
-		elif self.show_resp: self.__display_clue_resp(self.show_clue, self.buzzed_in, self.show_resp)
-		elif self.check_resp: self.__display_check()
+		# DISPLAY LOGIC
+		if self.state.main: self.__display_main()
+		elif self.state.display_clue: self.__display_clue_resp(self.state.display_clue, self.state.buzzed_in, self.state.display_resp)			
+		elif self.state.buzzed_in: self.__display_clue_resp(self.state.display_clue, self.state.buzzed_in, self.state.display_resp)
+		elif self.state.display_resp: self.__display_clue_resp(self.state.display_clue, self.state.buzzed_in, self.state.display_resp)
+		elif self.state.check_resp and not self.state.buzzed_timeout: self.__display_check()
+		elif self.state.bet: self.screen.blit(util.generate_bet_surface(self.cur_block.category, self.players[self.state.buzzed_player], self.cur_bet), (0, 0))
 		
-		# check if game over
 		return True
-	
-	def tick_game_clock(self, ms):
-	
-		self.game_clock += ms
-	
-	# GENERATES A LIST OF TWO LISTS
-	# each list corresponds to a different round
-	# each contains a set of ints
-	def __generate_clue_arr(self):
-	
-		clue_arr = [[],[]]
 		
-		# exclude final jeopardy round
-		for i in range(len(self.clue[:-1])):
-			for j in range(len(self.clue[i])):
-			
-				# new list for each category
-				clue_arr[i].append([0])
-				
-				for clue in self.clue[i][j]:
-				
-					# if no clue, mark as seen
-					if clue: clue_arr[i][j].append(0)
-					else: clue_arr[i][j].append(1)
-					
-		return clue_arr
-	
 	# UPDATES CLUES AND CATEGORIES AND CURSOR ON BOARD SURFACE
 	def __update_board_surf(self):
 	
@@ -289,13 +163,14 @@ class Game:
 	
 		# blit board surface with values
 		i = 0
-		for category in self.clue_arr[self.cur_round]:
+		for category in self.lib[self.cur_round]:
 		
-			self.board_surf.blit(self.cat_surf[self.cur_round][i], (i*width_interval+10,10))
+			# self.board_surf.blit(self.cat_surf[self.cur_round][i], (i*width_interval+10,10))
+			self.board_surf.blit(self.lib[self.cur_round][i][0].cat_board_surface(), (i*width_interval+10,-10))
 		
 			j = 0
-			for clue in category[1:]:
-				if clue == 0:
+			for block in category:
+				if not block.clue.completed:
 				
 					self.board_surf.blit(self.value_surf[self.cur_round][j], (i*width_interval+10, (j+1)*height_interval+10))
 				
@@ -309,22 +184,21 @@ class Game:
 	
 		self.screen.fill(constants.BLUE)
 		
-		clue_surf = util.generate_text_surface((self.cat[self.cur_round][self.cursor_loc[0]][0]).upper())
+		clue_surf = util.generate_text_surface((str(self.cur_block.category).upper()))
 	
 		# if clue display
 		if show_clue:
-			char_surf = self.alex_surf
-			text_surf = util.generate_text_surface(self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
-			tts = self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
+			char_surf = constants.ALEX_IMAGE
+			text_surf = util.generate_text_surface(self.cur_block.clue)
+			tts = self.cur_block.clue
 		elif buzzed_in:
-			#char_surf = self.__generate_char_surf(self.buzzed_player)
-			char_surf = self.players[self.buzzed_player].char_surface
-			text_surf = util.generate_text_surface(self.clue[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
+			char_surf = self.players[self.state.buzzed_player].char_surface
+			text_surf = util.generate_text_surface(self.cur_block.clue)
+			tts = self.cur_block.clue
 		elif show_resp:
-			#char_surf = self.__generate_char_surf(self.buzzed_player)
-			char_surf = self.players[self.buzzed_player].char_surface
-			text_surf = util.generate_text_surface(self.resp[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]])
-			tts = self.resp[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
+			char_surf = self.players[self.state.buzzed_player].char_surface
+			text_surf = util.generate_text_surface(self.cur_block.response)
+			tts = self.cur_block.response
 		
 		# scale character surface
 		scaled_image = pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3))
@@ -336,9 +210,7 @@ class Game:
 		self.screen.blit(text_surf, (constants.DISPLAY_RES[0]/2 - constants.BOARD_SIZE[0]/2,0))
 		
 		# read clue/response
-		if (show_clue or show_resp) and not self.tts_done:
-			self.pyttsx_engine.say(tts.decode('utf-8'))
-			self.tts_done = True
+		if (show_clue or show_resp or (buzzed_in and self.state.dailydouble)) and (self.state.count == 0): self.pyttsx_engine.say(str(tts).decode('utf-8'))
 	
 	# BLIT MAIN DISPLAY TO SCREEN
 	def __display_main(self):
@@ -353,7 +225,7 @@ class Game:
 			#char_surfs.append(self.__generate_char_surf(i))
 			char_surfs.append(self.players[i].char_surface)
 			
-		active_char = char_surfs[self.active_player]
+		active_char = char_surfs[self.state.active_player]
 		scaled_image = pygame.transform.scale(active_char, (active_char.get_width()*3, active_char.get_height()*3))
 		
 		# blit active char
@@ -372,29 +244,21 @@ class Game:
 	# correct = 0, incorrect = 1
 	def __display_check(self):
 
-		#correct_surf = util.generate_text_surface('CORRECT')
-		#incorrect_surf = util.generate_text_surface('INCORRECT')
-		
-		#char_surf = self.__generate_char_surf(self.buzzed_player)
-		char_surf = self.players[self.buzzed_player].char_surface
+		char_surf = self.players[self.state.buzzed_player].char_surface
 		scaled_image = pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3))
 		
 		self.screen.fill(constants.BLUE)
 		
-		#if self.menu_cursor_loc == 0: active_surf = correct_surf
-		#else: active_surf = incorrect_surf
-		
 		util.blit_alpha(self.screen, scaled_image, (0, constants.DISPLAY_RES[1]-scaled_image.get_height()), 100)
 		self.screen.blit(char_surf, (0, constants.DISPLAY_RES[1]-char_surf.get_height()))
 		
-		#self.screen.blit(active_surf, (constants.DISPLAY_RES[0]/2-constants.BOARD_SIZE[0]/2,0))
 		self.screen.blit(self.correct_surf, (constants.DISPLAY_RES[0]/2-constants.BOARD_SIZE[0]/2,0))
 	
 	# UPDATE CURSON BASED ON BUTTON DIRECTION
 	# up = 1, right = 2, left = 3, down = 4
 	def __update_cursor_loc(self, direction):
 	
-		if self.show_main:
+		if self.state.main:
 		
 			if direction == 1:		
 				if self.cursor_loc[1] > 0: self.cursor_loc[1] -= 1
@@ -411,17 +275,30 @@ class Game:
 			elif direction == 4:
 				if self.cursor_loc[1] < 4: self.cursor_loc[1] += 1
 				else: self.cursor_loc[1] = 0
+				
+	def __set_dailydoubles(self):
+	
+		for round in self.lib[:-1]:
+		
+			dd1 = [random.randint(0, 5), random.randint(0, 4)]
+			dd2 = [random.randint(0, 5), random.randint(0, 4)]
+			
+			while (dd1[0] == dd2[0]): dd2[0] = random.randint(0, 5)
+			
+			round[dd1[0]][dd1[1]].set_dailydouble(True)
+			round[dd2[0]][dd2[1]].set_dailydouble(True)
 	
 	# check to see if current round is over
 	def __check_round(self):
 	
 		cat_done = True
-		for clue in self.clue_arr[self.cur_round][self.cursor_loc[0]][1:]:
-			if clue == 0: cat_done = False
-		if cat_done: self.clue_arr[self.cur_round][self.cursor_loc[0]][0] = 1
+		#for clue in self.clue_arr[self.cur_round][self.cursor_loc[0]][1:]:
+		for block in self.lib[self.cur_round][self.cursor_loc[0]]:
+			if not block.clue_completed(): cat_done = False
+		if cat_done: self.lib[self.cur_round][self.cursor_loc[0]][0].complete_category()
 		
 		round_done = True
-		for cat in self.clue_arr[self.cur_round]:
-			if cat[0] == 0: round_done = False
+		for block in self.lib[self.cur_round]:
+			if not block[0].category_completed(): round_done = False
 			
 		return round_done

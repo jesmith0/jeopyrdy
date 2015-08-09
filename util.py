@@ -64,35 +64,15 @@ def generate_value_surface():
 		
 		# for each value in value set
 		for value in value_set:
-			value_surf[-1].append(generate_text_surface(str(value), width, height, font_size, color, "helvetica", constants.DARK_BLUE))
+			value_surf[-1].append(generate_text_surface(value, width, height, font_size, color, "helvetica", constants.DARK_BLUE))
 	
 	return value_surf
 
-def generate_category_surface(category_list):
-
-	font_size = 20
-	color = constants.YELLOW
-
-	# width based on board size
-	width = constants.BOARD_SIZE[0]/6 - 20
-	height = constants.BOARD_SIZE[1]/6 - 20
-	
-	# create surface
-	cat_surf = []
-
-	# for each round in list
-	for round in category_list[:-1]:
-	
-		cat_surf.append([])
-		
-		# for each category in round
-		for cat in round:
-			cat_surf[-1].append(generate_text_surface(cat[0], width, height, font_size, color, "helvetica", constants.DARK_BLUE))
-			
-	return cat_surf
-
 def generate_text_surface(text, max_width = constants.BOARD_SIZE[0], max_height = constants.BOARD_SIZE[1],
 							font_size = 40, color = constants.WHITE, font_fam = "helvetica", color_key = constants.BLUE):
+	
+	# encode data as string
+	text = str(text)
 	
 	text_surf = pygame.Surface((max_width, max_height)).convert()
 	
@@ -160,8 +140,24 @@ def generate_correct_surface():
 	
 	main_surf.blit(orange_rect_surf, (main_center_loc[0]-100, main_center_loc[1]-50))
 	main_surf.blit(green_rect_surf, (main_center_loc[0]-100, main_center_loc[1]+50))
-	main_surf.blit(correct_text_surf, (100, -20))
-	main_surf.blit(incorrect_text_surf, (100, 80))
+	main_surf.blit(correct_text_surf, (100, 80))
+	main_surf.blit(incorrect_text_surf, (100, -20))
+	
+	return main_surf
+	
+def generate_bet_surface(category, player, bet):
+
+	main_surf = pygame.Surface(constants.DISPLAY_RES)
+	main_surf.fill(constants.BLUE)
+	
+	prompt_text_surf = generate_text_surface(category)
+	scaled_image_surf = pygame.transform.scale(player.blank_char_surface, (player.blank_char_surface.get_width()*3, player.blank_char_surface.get_height()*3))
+	bet_text_surf = generate_text_surface(bet, scaled_image_surf.get_width(), scaled_image_surf.get_height(), 63, constants.WHITE, "digital")
+	
+	scaled_image_surf.blit(bet_text_surf, (0,scaled_image_surf.get_height()/3+20))
+	
+	main_surf.blit(prompt_text_surf, (constants.DISPLAY_RES[0]/2-prompt_text_surf.get_width()/2, -200))
+	main_surf.blit(scaled_image_surf, (constants.DISPLAY_RES[0]/2-scaled_image_surf.get_width()/2,constants.DISPLAY_RES[1]-scaled_image_surf.get_height()))
 	
 	return main_surf
 

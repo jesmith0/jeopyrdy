@@ -56,6 +56,23 @@ ALEX_IMAGE = pygame.image.load(IMAGE_PATH + "alex.png")
 LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
 ################
 
+# sound objects
+################
+THEME_SOUND = pygame.mixer.Sound(MUSIC_PATH + "theme.ogg")
+BUZZ_SOUND = pygame.mixer.Sound(MUSIC_PATH + "ringin.ogg")
+TIMEOUT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "timeout.ogg")
+BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
+DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
+
+RIGHT_SOUNDS = []
+
+WRONG_SOUNDS = []
+WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "alex_wrong.ogg"))
+WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "sean_wrong.ogg"))
+WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "burt_wrong.ogg"))
+WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg"))
+################
+
 # create font surfaces
 ################
 KORINNA = []
