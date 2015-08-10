@@ -54,6 +54,7 @@ POINT_VALUES = [[100, 200, 300, 400, 500], [200, 400, 600, 800, 1000]]
 CHARACTERS_IMAGE = pygame.image.load(IMAGE_PATH + "chars.png")
 ALEX_IMAGE = pygame.image.load(IMAGE_PATH + "alex.png")
 LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
+DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
 ################
 
 # sound objects

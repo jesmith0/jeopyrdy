@@ -23,6 +23,7 @@ class State:
 		# HELPER STATES
 		self.button_raised = False
 		self.buzzed_timeout = False
+		self.clue_timeout = False
 		
 		# DELAYS
 		self.DELAY = 1000
@@ -51,6 +52,8 @@ class State:
 				
 				self.main = False
 				self.buzzed_timeout = False
+				self.clue_timeout = False
+				self.dailydouble = False
 				
 				if not cur_block.is_dailydouble(): self.display_clue = True
 				else:
@@ -77,17 +80,32 @@ class State:
 				if not timedout: self.buzzed_in = True
 				else:
 					constants.TIMEOUT_SOUND.play()
+					time.sleep(1)
 					self.display_resp = True
+					self.clue_timeout = True
+				
+				self.__end_state()
+				
+			# BUZZED IN SCREEN STATE LOGIC
+			elif self.buzzed_in and ((( timedout or (game_clock >= self.DELAY and int(input[self.buzzed_player][0])) ))):
+				
+				if timedout:
+					constants.TIMEOUT_SOUND.play()
+					time.sleep(1)
+					self.buzzed_timeout = True
+				
+				self.buzzed_in = False
+				self.display_resp = True
 				
 				self.__end_state()
 			
 			# DISPLAY RESPONSE SCREEN STATE LOGIC
-			elif self.display_resp and (((( not timedout and self.__check_button_raised(input, 0, False) and int(input[self.buzzed_player][0]) ))) \
-										or ((( timedout and self.__check_button_raised(input, 0) and int(input[self.active_player][0]) )))):
-										
+			elif self.display_resp and (((( timedout and self.__check_button_raised(input, 0) and int(input[self.active_player][0]) ))) \
+										or ((( not timedout and int(input[self.buzzed_player][0]) ))) ):
+				
 				self.display_resp = False
 				
-				if self.buzzed_timeout: self.check_resp = True
+				if self.buzzed_timeout or self.clue_timeout: self.main = True
 				else: self.check_resp = True
 			
 				self.__end_state()
@@ -97,20 +115,6 @@ class State:
 			
 				self.check_resp = False
 				self.main = True
-				self.dailydouble = False
-				
-				self.__end_state()
-			
-			# BUZZED IN SCREEN STATE LOGIC
-			elif self.buzzed_in and ((( timedout or self.__check_button_raised(input, 0, False) and int(input[self.buzzed_player][0]) ))):
-				
-				if timedout:
-					constants.TIMEOUT_SOUND.play()
-					time.sleep(0.5)
-					self.buzzed_timeout = True
-				
-				self.buzzed_in = False
-				self.display_resp = True
 				
 				self.__end_state()
 		

@@ -148,14 +148,15 @@ def generate_correct_surface():
 def generate_bet_surface(category, player, bet):
 
 	main_surf = pygame.Surface(constants.DISPLAY_RES)
-	main_surf.fill(constants.BLUE)
 	
+	background_surf = pygame.transform.scale(constants.DDBG_IMAGE, constants.DISPLAY_RES)
 	prompt_text_surf = generate_text_surface(category)
 	scaled_image_surf = pygame.transform.scale(player.blank_char_surface, (player.blank_char_surface.get_width()*3, player.blank_char_surface.get_height()*3))
 	bet_text_surf = generate_text_surface(bet, scaled_image_surf.get_width(), scaled_image_surf.get_height(), 63, constants.WHITE, "digital")
 	
 	scaled_image_surf.blit(bet_text_surf, (0,scaled_image_surf.get_height()/3+20))
 	
+	main_surf.blit(background_surf, (0, 0))
 	main_surf.blit(prompt_text_surf, (constants.DISPLAY_RES[0]/2-prompt_text_surf.get_width()/2, -200))
 	main_surf.blit(scaled_image_surf, (constants.DISPLAY_RES[0]/2-scaled_image_surf.get_width()/2,constants.DISPLAY_RES[1]-scaled_image_surf.get_height()))
 	

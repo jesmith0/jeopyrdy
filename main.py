@@ -195,8 +195,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	screen.fill(constants.BLUE)

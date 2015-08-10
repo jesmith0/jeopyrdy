@@ -1,5 +1,5 @@
 import pygame, random, pyttsx
-import constants, util, player, state
+import constants, util, player, state, time
 
 class Game:
 
@@ -39,7 +39,7 @@ class Game:
 		self.__set_dailydoubles()
 		
 		# LOOP THEME
-		constants.THEME_SOUND.play(-1)
+		# constants.THEME_SOUND.play(-1)
 		constants.BOARDFILL_SOUND.play()
 		
 		# INITIAL UPDATE
@@ -61,8 +61,6 @@ class Game:
 				
 				# set current block to correspond with cursor's position
 				self.cur_block = self.lib[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
-				
-				self.game_clock = 0
 			
 			# BET SCREEN MAIN LOGIC
 			elif self.state.bet:
@@ -72,16 +70,16 @@ class Game:
 				else: max_bet = self.players[self.state.active_player].score
 			
 				# set maximum bet
-				if self.state.count == 1: self.cur_bet = max_bet
+				if self.state.count == 0: self.cur_bet = max_bet
 				
 				# increase/decrease current bet
 				if (int(input[self.state.active_player][1]) or int(input[self.state.active_player][2])) and (self.cur_bet + 100 <= max_bet): self.cur_bet += 100
 				elif (int(input[self.state.active_player][3]) or int(input[self.state.active_player][4])) and (self.cur_bet - 100 >= 0): self.cur_bet -= 100
-				
-				self.game_clock = 0
 			
 			# DISPLAY CLUE SCREEN GAME LOGIC
 			elif self.state.display_clue:
+			
+				if self.state.count == 0: self.game_clock = 0
 			
 				buzzed_players = []
 			
@@ -101,16 +99,18 @@ class Game:
 					
 					# play 'ring in' sound
 					if not self.state.dailydouble: constants.BUZZ_SOUND.play()
-					
-				self.game_clock = 0
+			
+			# BUZZED-IN SCREEN GAME LOGIC
+			elif self.state.buzzed_in:
+				
+				# reset game clock
+				if self.state.count == 0: self.game_clock = 0
 			
 			# DISPLAY RESPONSE SCREEN GAME LOGIC
 			elif self.state.display_resp: pass
 			
 			# CHECK RESPONSE SCREEN GAME LOGIC
 			elif self.state.check_resp:
-			
-				if self.state.count == 0: self.game_clock = 0
 			
 				# determine points to add/sub
 				if self.state.dailydouble: points = self.cur_bet
