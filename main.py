@@ -180,7 +180,7 @@ def main():
 
 	menu_active = True
 	game_active = False
-	num_players = 1
+	num_players = 4
 
 	# SETUP USB BUZZERS
 	buzz_dev = usb.core.find()
@@ -195,8 +195,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	screen.fill(constants.BLUE)
@@ -224,8 +224,15 @@ def main():
 		# check for ESCAPE key
 		for event in pygame.event.get():
 			if event.type == pygame.KEYDOWN:
+			
+				# exit from pygame
 				if event.key == pygame.K_ESCAPE:
 					game_active = False
+				
+				# jump to final jeopardy
+				elif event.key == pygame.K_k:
+					game.state.set_final_jeopardy()
+					game.cur_round = 2
 		
 		# if ESCAPE key, break before update
 		if game_active == False: continue

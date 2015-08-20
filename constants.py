@@ -44,6 +44,11 @@ GREEN = 0, 128, 0
 COLOR_KEY = 0, 255, 0
 ################
 
+# states
+################
+SOUND_ON = True
+################
+
 # point value defaults
 ################
 POINT_VALUES = [[100, 200, 300, 400, 500], [200, 400, 600, 800, 1000]]
@@ -55,6 +60,7 @@ CHARACTERS_IMAGE = pygame.image.load(IMAGE_PATH + "chars.png")
 ALEX_IMAGE = pygame.image.load(IMAGE_PATH + "alex.png")
 LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
 DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
+FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 ################
 
 # sound objects
@@ -64,6 +70,7 @@ BUZZ_SOUND = pygame.mixer.Sound(MUSIC_PATH + "ringin.ogg")
 TIMEOUT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "timeout.ogg")
 BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
 DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
+FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
 
 RIGHT_SOUNDS = []
 
@@ -72,6 +79,24 @@ WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "alex_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "sean_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "burt_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg"))
+################
+
+# state constants
+################
+MAIN_STATE = 0
+BET_STATE = 1
+BUZZED_STATE = 2
+SHOW_CLUE_STATE = 3
+SHOW_RESP_STATE = 4
+CHECK_RESP_STATE = 5
+################
+
+# delay times
+################
+DELAY = 1000
+CLUE_TIMEOUT = 15000
+BUZZ_TIMEOUT = 8000
+FINAL_TIMEOUT = 60000
 ################
 
 # create font surfaces

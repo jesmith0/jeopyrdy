@@ -1,4 +1,10 @@
-import pygame, constants
+import pygame, constants, player
+
+def init_player_objects(num_players):
+
+	players = []
+	for i in range(num_players): players.append(player.Player(i))
+	return players
 
 def generate_board_surface():
 
@@ -145,11 +151,13 @@ def generate_correct_surface():
 	
 	return main_surf
 	
-def generate_bet_surface(category, player, bet):
+def generate_bet_surface(category, player, bet, fj = False):
 
 	main_surf = pygame.Surface(constants.DISPLAY_RES)
 	
-	background_surf = pygame.transform.scale(constants.DDBG_IMAGE, constants.DISPLAY_RES)
+	if fj: background_surf = pygame.transform.scale(constants.FJBG_IMAGE, constants.DISPLAY_RES)
+	else: background_surf = pygame.transform.scale(constants.DDBG_IMAGE, constants.DISPLAY_RES)
+	
 	prompt_text_surf = generate_text_surface(category)
 	scaled_image_surf = pygame.transform.scale(player.blank_char_surface, (player.blank_char_surface.get_width()*3, player.blank_char_surface.get_height()*3))
 	bet_text_surf = generate_text_surface(bet, scaled_image_surf.get_width(), scaled_image_surf.get_height(), 63, constants.WHITE, "digital")

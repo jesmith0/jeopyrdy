@@ -15,6 +15,12 @@ class Player:
 		
 		# blit initial score
 		self.add_to_score(0)
+		
+	def get_max_bet(self):
+	
+		# determine maximum bet from player score
+		if self.score <= 1000: return 1000
+		else: return self.score
 	
 	# NEGATES POINTS AND CALLS add_to_score
 	def sub_from_score(self, points):
