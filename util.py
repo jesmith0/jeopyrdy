@@ -170,7 +170,7 @@ def generate_bet_surface(category, player, bet, fj = False):
 	
 	return main_surf
 
-# CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/
+### CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
 # create surface with given opacity
 def blit_alpha(target, source, location, opacity):
 
@@ -179,8 +179,9 @@ def blit_alpha(target, source, location, opacity):
 	temp = pygame.Surface((source.get_width(), source.get_height())).convert()
 	temp.blit(target, (-x, -y))
 	temp.blit(source, (0, 0))
-	temp.set_alpha(opacity)        
+	temp.set_alpha(opacity)
 	target.blit(temp, location)
+##############################################################################
 	
 # GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME
 # assumes list is fully populated

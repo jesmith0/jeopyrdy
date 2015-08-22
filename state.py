@@ -24,6 +24,9 @@ class State:
 		self.buzzed_timeout = False
 		self.clue_timeout = False
 		self.skip_player = False
+		self.check_round = False
+		self.all_bets_set = False
+		self.all_checks_set = False
 	
 	def set_buzzed_player(self, p): self.buzzed_player = p
 	
@@ -31,7 +34,7 @@ class State:
 	
 		# players bet first
 		self.final = True
-		self.cur_state = BET_STATE
+		self.cur_state = FINAL_BET_STATE
 		
 		# P1 is first to bet
 		self.active_player = 0
@@ -40,6 +43,9 @@ class State:
 	
 		# RESET CLOCK
 		if self.count == 0: self.game_clock = 0
+		
+		# RESET VARIABLES
+		self.check_round = False
 	
 		# INCREMENT STATE COUNT
 		self.count += 1
@@ -86,16 +92,16 @@ class State:
 				self.__end_state()
 			
 			# DISPLAY CLUE SCREEN STATE LOGIC
-			elif self.if_state(SHOW_CLUE_STATE) and ((( timedout or self.__check_button_raised(input, 0, False) and int(input[self.buzzed_player][0]) ))):
-			
-				print str(timedout)
+			elif self.if_state(SHOW_CLUE_STATE) and ((( timedout or (not self.final and self.__check_button_raised(input, 0, False) and int(input[self.buzzed_player][0])) ))):
 			
 				if not timedout and not self.final: self.cur_state = BUZZED_STATE
 				else:
 					TIMEOUT_SOUND.play()
 					time.sleep(1)
 					self.clue_timeout = True
-					self.cur_state = SHOW_RESP_STATE
+					
+					if self.final: self.cur_state = FINAL_CHECK_STATE
+					else: self.cur_state = SHOW_RESP_STATE
 				
 				self.__end_state()
 				
@@ -115,24 +121,44 @@ class State:
 			elif self.if_state(SHOW_RESP_STATE) and (((( timedout and self.__check_button_raised(input, 0) and int(input[self.active_player][0]) ))) \
 										or ((( not timedout and int(input[self.buzzed_player][0]) ))) ):
 				
-				if (self.buzzed_timeout or self.clue_timeout) and not self.final: self.cur_state = MAIN_STATE
-				else: self.cur_state = CHECK_RESP_STATE
+				if (self.buzzed_timeout or self.clue_timeout) and not self.final:
+					self.cur_state = MAIN_STATE
+					self.check_round = True
+				elif self.final:
+					self.cur_state = FINAL_CHECK_STATE
+				else: self.cur_state = CHECK_STATE
 			
 				self.__end_state()
 			
 			# CHECK RESPONSE SCREEN STATE LOGIC
-			elif self.if_state(CHECK_RESP_STATE) and ((( int(input[self.buzzed_player][2]) or int(input[self.buzzed_player][3]) or self.buzzed_timeout))):
+			elif self.if_state(CHECK_STATE) and ((( int(input[self.buzzed_player][2]) or int(input[self.buzzed_player][3]) or self.buzzed_timeout))):
 			
 				if self.final:
 				
 					if self.active_player < 3: self.active_player += 1
 					else:
-						self.cur_state = MAIN_STATE
+						self.cur_state = END_STATE
 						self.final = False
 					
-				else: self.cur_state = MAIN_STATE
+				else:
+					self.cur_state = MAIN_STATE
+					self.check_round = True
 				
 				self.__end_state()
+				
+			elif self.if_state(FINAL_BET_STATE):
+			
+				if self.all_bets_set:
+				
+					self.cur_state = SHOW_CLUE_STATE
+					self.all_bets_set = False
+			
+			elif self.if_state(FINAL_CHECK_STATE):
+			
+				if self.all_checks_set:
+				
+					self.cur_state = END_STATE
+					self.all_checks_set = False
 		
 	def __check_button_raised(self, input, button, active = True):
 	
@@ -169,4 +195,4 @@ class State:
 		elif self.if_state(BUZZED_STATE): return "BUZZED STATE"
 		elif self.if_state(SHOW_CLUE_STATE): return "SHOW CLUE STATE"
 		elif self.if_state(SHOW_RESP_STATE): return "SHOW RESPONSE STATE"
-		elif self.if_state(CHECK_RESP_STATE): return "CHECK RESPONSE STATE"
+		elif self.if_state(CHECK_STATE): return "CHECK RESPONSE STATE"

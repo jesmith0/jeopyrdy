@@ -46,7 +46,8 @@ COLOR_KEY = 0, 255, 0
 
 # states
 ################
-SOUND_ON = True
+MUSIC_ON = True
+SFX_ON = True
 ################
 
 # point value defaults
@@ -61,6 +62,7 @@ ALEX_IMAGE = pygame.image.load(IMAGE_PATH + "alex.png")
 LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
 DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
 FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
+MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
 ################
 
 # sound objects
@@ -88,7 +90,10 @@ BET_STATE = 1
 BUZZED_STATE = 2
 SHOW_CLUE_STATE = 3
 SHOW_RESP_STATE = 4
-CHECK_RESP_STATE = 5
+CHECK_STATE = 5
+FINAL_BET_STATE = 6
+FINAL_CHECK_STATE = 7
+END_STATE = 8
 ################
 
 # delay times

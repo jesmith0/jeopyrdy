@@ -36,7 +36,7 @@ class Game:
 		self.__set_dailydoubles()
 		
 		# PLAY SOUNDS
-		if (SOUND_ON):
+		if (SFX_ON):
 			THEME_SOUND.play(-1)
 			BOARDFILL_SOUND.play()
 		
@@ -106,10 +106,11 @@ class Game:
 			# DISPLAY RESPONSE SCREEN GAME LOGIC
 			elif self.state.if_state(SHOW_RESP_STATE): 
 			
-				if self.state.buzzed_timeout: self.__update_points(False)
+				print self.state.count
+				if self.state.buzzed_timeout and self.state.count == 0: self.__update_points(False)
 			
 			# CHECK RESPONSE SCREEN GAME LOGIC
-			elif self.state.if_state(CHECK_RESP_STATE):
+			elif self.state.if_state(CHECK_STATE):
 				
 				# player indicates CORRECT/INCORRECT
 				if int(input[self.state.buzzed_player][3]):
@@ -118,33 +119,119 @@ class Game:
 					
 				elif int(input[self.state.buzzed_player][2]) or self.state.buzzed_timeout:
 					self.__update_points(False)
-	
-		# check if round over
-		if self.__check_round():
-		
-			self.cur_round += 1
-			if SOUND_ON: BOARDFILL_SOUND.play()
 			
-			# initiate final jeopardy
-			if self.cur_round == 2: self.__init_final()
+			# FINAL JEOPARDY BET SCREEN GAME LOGIC
+			elif self.state.if_state(FINAL_BET_STATE):
+					
+				# process input
+				self.__proc_final_input(input)
+				
+				# check if completed
+				completed = True
+				for player in self.players:
+					if not player.bet_set: completed = False
+				
+				# on completion, notify state object
+				if completed:
+					
+					self.state.all_bets_set = True
+					
+					# set up check state
+					for player in self.players:		
+						print player.cur_bet
+						if player.cur_bet <= 0: player.check_set = True
 			
-			# game over
-			elif self.cur_round == 3: return False
-	
+			# FINAL JEOPARDY CHECK SCREEN GAME LOGIC
+			elif self.state.if_state(FINAL_CHECK_STATE):
+					
+				# process input
+				self.__proc_final_input(input)
+				
+				for player in self.players:
+					print player.cur_bet
+				print
+				
+				# check if completed
+				completed = True
+				for player in self.players:
+					if not player.check_set: completed = False
+				
+				# on completion, notify state object
+				if completed: self.state.all_checks_set = True
+				
 		# UPDATE GAME STATE
 		self.state.update(input, self.cur_block)
 		
-		# DISPLAY LOGIC
-		### NEEDS PRETTYING ###
-		if self.state.if_state(MAIN_STATE): self.__display_main()
-		elif self.state.if_state(SHOW_CLUE_STATE): self.__display_clue_resp()			
-		elif self.state.if_state(BUZZED_STATE): self.__display_clue_resp()
-		elif self.state.if_state(SHOW_RESP_STATE): self.__display_clue_resp()
-		elif self.state.if_state(CHECK_RESP_STATE) and not self.state.buzzed_timeout: self.__display_check()
-		elif self.state.if_state(BET_STATE) and not self.state.final: self.screen.blit(util.generate_bet_surface(self.cur_block.category, self.players[self.state.buzzed_player], self.cur_bet), (0, 0))
-		elif self.state.if_state(BET_STATE) and self.state.final: self.screen.blit(util.generate_bet_surface(self.cur_block.category, self.players[self.state.active_player], self.cur_bet, True), (0, 0))
+		# UPDATE ROUND
+		self.__update_round()
+		
+		# DISPLAY GAME STATE
+		self.__display_state(self.state.cur_state)
 		
 		return True
+		
+	def __proc_final_input(self, input):
+	
+		for i in range(self.num_players):
+		
+			player =  self.players[i]
+		
+			# increment/decrement bet
+			if self.state.if_state(FINAL_BET_STATE) and not player.bet_set:
+				
+				if int(input[i][0]): player.bet_set = True
+				elif int(input[i][1]): player.add_to_bet()
+				elif int(input[i][4]): player.sub_from_bet()
+			
+			# indicate correct/incorrect
+			if self.state.if_state(FINAL_CHECK_STATE):
+			
+				if int(input[i][2]):
+					player.sub_from_score(player.cur_bet)
+					player.check_set = True
+					
+				elif int(input[i][3]):
+					player.add_to_score(player.cur_bet)
+					player.check_set = True
+		
+	def __update_round(self):
+	
+		# check if round over
+		if self.state.check_round and self.__check_round():
+		
+			# increment round, play sound
+			self.cur_round += 1
+			if SFX_ON: BOARDFILL_SOUND.play()
+			
+			# initiate final jeopardy
+			if self.cur_round == 2:
+			
+				self.__init_final()
+				
+				# set up final bet state
+				for player in self.players: player.setup_bet(True)
+	
+	### DEBUGGING ONLY ###
+	def force_update_round(self):
+	
+		self.__init_final()
+				
+		# set up final bet state
+		for player in self.players: player.setup_bet(True)
+		
+	def __display_state(self, cur_state):
+	
+		# call appropriate display function based on the current state
+		if cur_state == MAIN_STATE: 			self.__display_main()
+		elif cur_state == SHOW_CLUE_STATE: 		self.__display_clue_resp()			
+		elif cur_state == BUZZED_STATE: 		self.__display_clue_resp()
+		elif cur_state == SHOW_RESP_STATE: 		self.__display_clue_resp()
+		elif cur_state == CHECK_STATE and not self.state.buzzed_timeout: self.__display_check()
+		elif cur_state == BET_STATE and not self.state.final: self.screen.blit(util.generate_bet_surface(self.cur_block.category, self.players[self.state.buzzed_player], self.cur_bet), (0, 0))
+		elif cur_state == BET_STATE and self.state.final: self.screen.blit(util.generate_bet_surface(self.cur_block.category, self.players[self.state.active_player], self.cur_bet, True), (0, 0))
+		elif cur_state == FINAL_BET_STATE:		self.__display_final_bet()
+		elif cur_state == FINAL_CHECK_STATE: 	self.__display_final_check()
+		elif cur_state == END_STATE: 			self.__display_end()
 		
 	# UPDATES CLUES AND CATEGORIES AND CURSOR ON BOARD SURFACE
 	def __update_board_surf(self):
@@ -162,7 +249,6 @@ class Game:
 		i = 0
 		for category in self.lib[self.cur_round]:
 		
-			# self.board_surf.blit(self.cat_surf[self.cur_round][i], (i*width_interval+10,10))
 			self.board_surf.blit(self.lib[self.cur_round][i][0].cat_board_surface(), (i*width_interval+10,-10))
 		
 			j = 0
@@ -216,15 +302,9 @@ class Game:
 		self.screen.fill(BLUE)
 		self.__update_board_surf()
 		
-		char_surfs = []
-		
-		# generate character surfaces
-		for i in range(self.num_players):
-			#char_surfs.append(self.__generate_char_surf(i))
-			char_surfs.append(self.players[i].char_surface)
-			
-		active_char = char_surfs[self.state.active_player]
-		scaled_image = pygame.transform.scale(active_char, (active_char.get_width()*3, active_char.get_height()*3))
+		# create scaled character surface
+		active_char_surf = self.players[self.state.active_player].char_surface
+		scaled_image = pygame.transform.scale(active_char_surf, (active_char_surf.get_width()*3, active_char_surf.get_height()*3))
 		
 		# blit active char
 		util.blit_alpha(self.screen, scaled_image, (0, DISPLAY_RES[1]-scaled_image.get_height()), 100)
@@ -232,11 +312,8 @@ class Game:
 		# blit game board
 		self.screen.blit(self.board_surf, (DISPLAY_RES[0]/2-BOARD_SIZE[0]/2,0))
 		
-		width_interval = DISPLAY_RES[0]/self.num_players
-		
 		# blit all characters
-		for i in range(self.num_players):
-			self.screen.blit(char_surfs[i], (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height()))
+		self.__blit_all_characters(self.screen)
 	
 	# BLIT CHECK RESPONSE DISPLAY TO SCREEN
 	# correct = 0, incorrect = 1
@@ -251,36 +328,128 @@ class Game:
 		self.screen.blit(char_surf, (0, DISPLAY_RES[1]-char_surf.get_height()))
 		
 		self.screen.blit(self.correct_surf, (DISPLAY_RES[0]/2-BOARD_SIZE[0]/2,0))
+		
+	def __display_final_bet(self):
+	
+		# blit background image
+		background_surf = pygame.transform.scale(FJBG_IMAGE, DISPLAY_RES)
+		self.screen.blit(background_surf, (0, 0))
+		
+		# blit all characters
+		self.__blit_all_characters(self.screen)
+		
+	def __display_final_check(self):
+	
+		main_center_loc = [BOARD_SIZE[0]/2, BOARD_SIZE[1]/2]
+	
+		correct_text_surf = util.generate_text_surface("CORRECT")
+		incorrect_text_surf = util.generate_text_surface("INCORRECT")
+		
+		orange_rect_surf = pygame.Surface((100, 50)).convert()
+		orange_rect_surf.fill(ORANGE)
+		
+		green_rect_surf = pygame.Surface((100, 50)).convert()
+		green_rect_surf.fill(GREEN)
+	
+		# fill screen
+		self.screen.fill(BLUE)
+		
+		# blit response
+		self.screen.blit(util.generate_text_surface(self.cur_block.response), (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
+		
+		self.screen.blit(orange_rect_surf, (main_center_loc[0]-100, main_center_loc[1]-50))
+		self.screen.blit(green_rect_surf, (main_center_loc[0]-100, main_center_loc[1]+50))
+		self.screen.blit(correct_text_surf, (100, 80))
+		self.screen.blit(incorrect_text_surf, (100, -20))
+		
+		# blit all characters
+		self.__blit_all_characters(self.screen)
+		
+	def __display_end(self):
+	
+		# scale and blit background image
+		background_surf = pygame.transform.scale(MAINBG_IMAGE, DISPLAY_RES)
+		self.screen.blit(background_surf, (0, 0))
+		
+		# determine winners (may be a tie)
+		winners = self.__determine_winners()
+		
+		# blit winners
+		for i in range(len(winners)):
+			char_surf = winners[i].char_surface
+			self.screen.blit(pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3)), (i*300, 100))
+		
+		self.screen.blit(util.generate_text_surface("CONGRATULATIONS!!!"), (0,-200))
+		
+	def __determine_winners(self):
+	
+		winners = [self.players[0]]
+		for player in self.players[1:]:
+			if player.score > winners[0].score: winners = [player]
+			elif player.score == winners[0].score: winners.append(player)
+			
+		return winners
+		
+	def __blit_all_characters(self, screen):
+	
+		char_surfs = []
+		
+		# generate character surfaces
+		for i in range(self.num_players):
+			char_surfs.append(self.players[i].char_surface)
+		
+		# width interval dependant on number of players
+		width_interval = DISPLAY_RES[0]/self.num_players
+		
+		blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
+		
+		# blit all characters
+		for i in range(self.num_players):
+		
+			# calculate location
+			blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
+			
+			if (self.state.if_state(FINAL_BET_STATE) and self.players[i].bet_set) or (self.state.if_state(FINAL_CHECK_STATE) and self.players[i].check_set):
+				util.blit_alpha(screen, char_surfs[i], blit_loc, 25)
+				
+			else: screen.blit(char_surfs[i], blit_loc)
 	
 	# UPDATE CURSON BASED ON BUTTON DIRECTION
-	# up = 1, right = 2, left = 3, down = 4
 	def __update_cursor_loc(self, direction):
 	
+		# up
 		if direction == 1:		
 			if self.cursor_loc[1] > 0: self.cursor_loc[1] -= 1
 			else: self.cursor_loc[1] = 4
-			
+		
+		# right
 		elif direction == 2:
 			if self.cursor_loc[0] < 5: self.cursor_loc[0] += 1
 			else: self.cursor_loc[0] = 0
 		
+		# left
 		elif direction == 3:
 			if self.cursor_loc[0] > 0: self.cursor_loc[0] -= 1
 			else: self.cursor_loc[0] = 5
 		
+		# down
 		elif direction == 4:
 			if self.cursor_loc[1] < 4: self.cursor_loc[1] += 1
 			else: self.cursor_loc[1] = 0
 				
 	def __set_dailydoubles(self):
 	
+		# for both rounds
 		for round in self.lib[:-1]:
 		
+			# choose random locations
 			dd1 = [random.randint(0, 5), random.randint(0, 4)]
 			dd2 = [random.randint(0, 5), random.randint(0, 4)]
 			
+			# asserts that locations are different
 			while (dd1[0] == dd2[0]): dd2[0] = random.randint(0, 5)
 			
+			# set daily double
 			round[dd1[0]][dd1[1]].set_dailydouble(True)
 			round[dd2[0]][dd2[1]].set_dailydouble(True)
 	
@@ -297,7 +466,7 @@ class Game:
 	def __update_points(self, add = True):
 	
 		# determine points to add/sub
-		if self.state.dailydouble: points = self.cur_bet
+		if self.state.dailydouble or self.state.final: points = self.cur_bet
 		else: points = POINT_VALUES[self.cur_round][self.cursor_loc[1]]
 	
 		if add:

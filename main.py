@@ -195,8 +195,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	screen.fill(constants.BLUE)
@@ -233,6 +233,7 @@ def main():
 				elif event.key == pygame.K_k:
 					game.state.set_final_jeopardy()
 					game.cur_round = 2
+					game.force_update_round()
 		
 		# if ESCAPE key, break before update
 		if game_active == False: continue
