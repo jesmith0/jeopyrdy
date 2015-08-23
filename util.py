@@ -1,187 +1,181 @@
-import pygame, constants, player
+import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, library
+
+# GLOBAL VARIABLES
+image_count = 0
+
+def buzz_setup(buzz_dev):
+
+	# SETUP USB BUZZERS
+	if buzz_dev is None:
+		raise ValueError('Device not found')
+
+	# may need to claim device from kernel
+	# see: http://www.orangecoat.com/how-to/read-and-decode-data-from-your-mouse-using-this-pyusb-hack
+		
+	buzz_dev.set_configuration()
+	
+	buzz_cfg = buzz_dev.get_active_configuration()
+	buzz_intf = buzz_cfg[(0,0)]
+	
+	buzz_ep = usb.util.find_descriptor(buzz_intf, buzz_intf[0])
+	
+	if buzz_ep is None:
+		raise ValueError('Endpoint not found')
+	else:
+		print "BUZZERS (setup):\tOK"
+		
+	return buzz_ep[0]
+	
+def gamify_input(buzz_input):
+
+	if buzz_input == None: return None
+	else:
+	
+		bin_input = []
+		
+		# convert to binary and normalize
+		for b in buzz_input[2:]:
+			bin_input.append(bin(b)[2:])
+			while(len(bin_input[-1]) < 8):
+				bin_input[-1] = '0' + bin_input[-1]
+		
+		# hard coded from buzzer device
+		b1 = [bin_input[0][7], bin_input[0][3], bin_input[0][4], bin_input[0][5], bin_input[0][6]]
+		b2 = [bin_input[0][2], bin_input[1][6], bin_input[1][7], bin_input[0][0], bin_input[0][1]]
+		b3 = [bin_input[1][5], bin_input[1][1], bin_input[1][2], bin_input[1][3], bin_input[1][4]]
+		b4 = [bin_input[1][0], bin_input[2][4], bin_input[2][5], bin_input[2][6], bin_input[2][7]]
+		
+		return [b1, b2, b3, b4]
+
+def scrub_text(text):
+
+	# remove static tags
+	new_text = text.replace('&amp;', '&')
+	new_text = new_text.replace('<br />', ' ')
+	new_text = new_text.replace('<br/>', ' ')
+	new_text = new_text.replace('<i>','')
+	new_text = new_text.replace('</i>','')
+	new_text = new_text.replace('<u>','')
+	new_text = new_text.replace('</u>','')
+	new_text = new_text.replace('</em>','')
+	new_text = new_text.replace('</a>','')
+	
+	# remove emphasis tag
+	if (not new_text.find('<em') == -1):
+		new_text = new_text[:new_text.find('<em')] + new_text[new_text.find('>')+2:]
+	
+	# for each hyperlink tag
+	while (not new_text.find('<a') == -1):
+			
+		# removes every hyperlink reference tag from text
+		new_text = new_text[:new_text.find('<a')] + new_text[new_text.find('">')+2:]
+		
+	return new_text
+
+def get_resource(text, num):
+
+	if not text.find('<a') == -1:
+	
+		# attempt to pull image from j-archive.com
+		try:
+			res = urllib.urlretrieve(text[text.find("http://"):text.find('.jpg')+4], constants.TEMP_PATH + "temp" + str(num) + ".jpg")
+			print res
+			return res
+		except:
+			# google image search
+			print "url non-responsive"
+	
+	return None
+	
+	# TODO: DETECT 404 ERRORS
+	
+def parse_jarchive():
+
+	cat = []
+	clue = []
+	resp = []
+	res = []
+	
+	res_count = 0
+
+	# RANDOMLY GENERATE USEABLE GAME NUMBER
+	game_num = str(random.randint(1, constants.MAX_GAME))
+	
+	print game_num
+	
+	# REDUCE WEBPAGE TO RELEVANT LINES (also sets display window caption)
+	# retrieves categories and clues
+	for line in urllib2.urlopen(constants.WEB_ADDR_CLUE + game_num).readlines():
+		if 'class="clue_text">' in line:
+			clue.append(line)
+			res.append(None)
+		elif 'class="category_name">' in line: cat.append(line)
+		elif 'id="game_title">' in line: pygame.display.set_caption(line[line.find('id="game_title"><h1>')+20:line.find('</h1>')].upper())
+	
+	# retrieves responses
+	for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
+		if 'class="correct_response">' in line: resp.append(line)
+	
+	# FORMAT LIBRARY INFO
+	for i in range(len(clue)):
+	
+		unscrubed_clue = clue[i][clue[i].find('class="clue_text">')+18:clue[i].find('</td>')]
+		
+		hold_res = get_resource(unscrubed_clue, res_count)
+		if hold_res: res_count += 1
+		
+		res[i] = hold_res
+		clue[i] = scrub_text(unscrubed_clue)
+		
+	for i in range(len(cat)):
+		cat[i] = scrub_text(cat[i][cat[i].find('class="category_name">')+22:cat[i].find('</td>')])
+		
+	for i in range(len(resp)):
+		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
+	
+	# RETURN LIBRARY
+	return [cat, clue, resp]
+	
+	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
+
+def gen_lib_object(parsed):
+
+	cat = gamify_list(parsed[0])
+	clue = gamify_list(parsed[1])
+	resp = gamify_list(parsed[2])
+	
+	lib = []
+
+	# each round is its own list of block objects
+	for i in range(len(clue)):
+	
+		lib.append([])
+		
+		for j in range(len(clue[i])):
+			lib[-1].append([])
+			for k in range(len(clue[i][j])):
+				lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]), library.Response(resp[i][j][k])))
+		
+	return lib
+	
+def lib_setup():
+
+	# primitive solution to ensure no unseen clues
+	parse_valid = False
+	
+	while (not parse_valid):
+		parsed_data = parse_jarchive()
+		if len(parsed_data[1]) == 61: parse_valid = True
+	
+	print "LIBRARY (setup):\tOK"
+	
+	return gen_lib_object(parsed_data)
 
 def init_player_objects(num_players):
 
 	players = []
 	for i in range(num_players): players.append(player.Player(i))
 	return players
-
-def generate_board_surface():
-
-	color = constants.YELLOW
-	
-	# intervals for line placement
-	width_interval = constants.BOARD_SIZE[0]/6
-	height_interval = constants.BOARD_SIZE[1]/6
-
-	# create surface and fill with dark blue
-	board_surf = pygame.Surface(constants.BOARD_SIZE)
-	board_surf.fill(constants.DARK_BLUE)
-	
-	# draw horizontal, then vertical line
-	for i in range(7):
-		pygame.draw.line(board_surf, color, (0,i*height_interval), (constants.BOARD_SIZE[0],i*height_interval), 3)
-		pygame.draw.line(board_surf, color, (i*width_interval,0), (i*width_interval,constants.BOARD_SIZE[1]), 3)
-	
-	return board_surf
-
-def generate_cursor_surface():
-
-	color = constants.WHITE
-	
-	# cursor size based on board size
-	width = constants.BOARD_SIZE[0]/6
-	height = constants.BOARD_SIZE[1]/6
-	
-	# create surface
-	cursor_surf = pygame.Surface((width+1, height+1))
-	
-	# set colour key and alpha
-	cursor_surf.fill(constants.COLOR_KEY)
-	cursor_surf.set_colorkey(constants.COLOR_KEY)
-	cursor_surf.set_alpha(255)
-	
-	# horizontal lines
-	pygame.draw.line(cursor_surf, color, (0,0), (width,0), 5)
-	pygame.draw.line(cursor_surf, color, (0,height), (width,height), 5)
-	
-	# vertical lines
-	pygame.draw.line(cursor_surf, color, (0,0), (0,height), 5)
-	pygame.draw.line(cursor_surf, color, (width,0), (width,height), 5)
-
-	return cursor_surf
-	
-def generate_value_surface():
-
-	font_size = 40
-	color = constants.YELLOW
-	
-	# based on board size
-	width = constants.BOARD_SIZE[0]/6 - 20
-	height = constants.BOARD_SIZE[1]/6 - 20
-	
-	# create list of surfaces
-	value_surf = []
-	
-	# for each set of values
-	for value_set in constants.POINT_VALUES:
-	
-		value_surf.append([])
-		
-		# for each value in value set
-		for value in value_set:
-			value_surf[-1].append(generate_text_surface(value, width, height, font_size, color, "helvetica", constants.DARK_BLUE))
-	
-	return value_surf
-
-def generate_text_surface(text, max_width = constants.BOARD_SIZE[0], max_height = constants.BOARD_SIZE[1],
-							font_size = 40, color = constants.WHITE, font_fam = "helvetica", color_key = constants.BLUE):
-	
-	# encode data as string
-	text = str(text)
-	
-	text_surf = pygame.Surface((max_width, max_height)).convert()
-	
-	text_surf.fill(color_key)
-	text_surf.set_colorkey(color_key)
-	text_surf.set_alpha(255)
-	
-	line_list = ['']
-	line_len = 0
-	
-	if font_fam == "helvetica": font = constants.HELVETICA
-	elif font_fam == "korinna": font = constants.KORINNA
-	elif font_fam == "digital": font = constants.DIGITAL
-	
-	word_list = text.split()
-	
-	italic = False
-	underline = True
-	
-	for word in word_list:
-				
-		# if first word on line
-		if line_list[-1] == '':
-		
-			line_list[-1] += word
-			line_len += font[font_size].size(word)[0]
-			
-		else:
-		
-			word_size = font[font_size].size(' ' + word)
-			line_len += word_size[0]
-			
-			if line_len <= max_width:
-				line_list[-1] += ' ' + word
-				line_len += word_size[0]
-			else:
-				line_list.append(word)
-				line_len = word_size[0]
-				
-	# blit each line to a single surface
-	i = 0
-	for line in line_list:
-		text_surf.blit(font[font_size].render(line, 1, color), (max_width/2 - font[font_size].size(line)[0]/2, max_height/2-(len(line_list)*font_size)/2+i*font_size))
-		i += 1
-			
-	return text_surf
-
-def generate_correct_surface():
-
-	main_surf = pygame.Surface(constants.BOARD_SIZE)
-	main_center_loc = [constants.BOARD_SIZE[0]/2, constants.BOARD_SIZE[1]/2]
-
-	correct_text_surf = generate_text_surface("CORRECT")
-	incorrect_text_surf = generate_text_surface("INCORRECT")
-	
-	orange_rect_surf = pygame.Surface((100, 50)).convert()
-	green_rect_surf = pygame.Surface((100, 50)).convert()
-	
-	main_surf.fill(constants.BLUE)
-	main_surf.set_colorkey(constants.BLUE)
-	main_surf.set_alpha(255)
-	
-	orange_rect_surf.fill(constants.ORANGE)
-	green_rect_surf.fill(constants.GREEN)
-	
-	main_surf.blit(orange_rect_surf, (main_center_loc[0]-100, main_center_loc[1]-50))
-	main_surf.blit(green_rect_surf, (main_center_loc[0]-100, main_center_loc[1]+50))
-	main_surf.blit(correct_text_surf, (100, 80))
-	main_surf.blit(incorrect_text_surf, (100, -20))
-	
-	return main_surf
-	
-def generate_bet_surface(category, player, bet, fj = False):
-
-	main_surf = pygame.Surface(constants.DISPLAY_RES)
-	
-	if fj: background_surf = pygame.transform.scale(constants.FJBG_IMAGE, constants.DISPLAY_RES)
-	else: background_surf = pygame.transform.scale(constants.DDBG_IMAGE, constants.DISPLAY_RES)
-	
-	prompt_text_surf = generate_text_surface(category)
-	scaled_image_surf = pygame.transform.scale(player.blank_char_surface, (player.blank_char_surface.get_width()*3, player.blank_char_surface.get_height()*3))
-	bet_text_surf = generate_text_surface(bet, scaled_image_surf.get_width(), scaled_image_surf.get_height(), 63, constants.WHITE, "digital")
-	
-	scaled_image_surf.blit(bet_text_surf, (0,scaled_image_surf.get_height()/3+20))
-	
-	main_surf.blit(background_surf, (0, 0))
-	main_surf.blit(prompt_text_surf, (constants.DISPLAY_RES[0]/2-prompt_text_surf.get_width()/2, -200))
-	main_surf.blit(scaled_image_surf, (constants.DISPLAY_RES[0]/2-scaled_image_surf.get_width()/2,constants.DISPLAY_RES[1]-scaled_image_surf.get_height()))
-	
-	return main_surf
-
-### CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
-# create surface with given opacity
-def blit_alpha(target, source, location, opacity):
-
-	x = location[0]
-	y = location[1]
-	temp = pygame.Surface((source.get_width(), source.get_height())).convert()
-	temp.blit(target, (-x, -y))
-	temp.blit(source, (0, 0))
-	temp.set_alpha(opacity)
-	target.blit(temp, location)
-##############################################################################
 	
 # GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME
 # assumes list is fully populated
@@ -208,3 +202,16 @@ def gamify_list(list):
 	gamified_list.append([[list[-1]]])
 			
 	return gamified_list
+	
+### CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
+# create surface with given opacity
+def blit_alpha(target, source, location, opacity):
+
+	x = location[0]
+	y = location[1]
+	temp = pygame.Surface((source.get_width(), source.get_height())).convert()
+	temp.blit(target, (-x, -y))
+	temp.blit(source, (0, 0))
+	temp.set_alpha(opacity)
+	target.blit(temp, location)
+##############################################################################

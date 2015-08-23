@@ -1,4 +1,4 @@
-import pygame, constants, util
+import pygame, constants, util, gen
 
 class Player:
 
@@ -7,6 +7,10 @@ class Player:
 		self.num = num
 		self.score = 0
 		
+		# state variables
+		self.active = False
+		self.buzzed = False
+		
 		# betting variables
 		self.cur_bet = 0
 		self.is_betting = False
@@ -14,7 +18,6 @@ class Player:
 		
 		# check variables
 		self.check_set = False
-		self.final_check = False
 		
 		# initialize surfaces
 		self.blank_char_surface = self.__generate_char_surface(self.num)
@@ -79,7 +82,7 @@ class Player:
 		# update player surface
 		self.char_surface.fill(constants.DARK_BLUE)
 		self.char_surface.blit(self.blank_char_surface, (0,0))
-		self.char_surface.blit(util.generate_text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 30, color, "digital", constants.BLUE), (0, 70))
+		self.char_surface.blit(gen.text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 30, color, "digital", constants.BLUE), (0, 70))
 	
 	# GENERATE BLANK CHARACTER SURFACE
 	def __generate_char_surface(self, num):

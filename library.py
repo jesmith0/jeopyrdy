@@ -1,4 +1,4 @@
-import util, constants, pygame
+import util, constants, pygame, gen
 
 class Block:
 
@@ -36,7 +36,7 @@ class Category:
 		# state
 		self.completed = False
 		
-		self.board_surface = util.generate_text_surface(self.text, constants.BOARD_SIZE[0]/6 - 20, constants.BOARD_SIZE[0]/6 - 20, 20, constants.YELLOW, "helvetica", constants.DARK_BLUE)
+		self.board_surface = gen.text_surface(self.text, constants.BOARD_SIZE[0]/6 - 20, constants.BOARD_SIZE[0]/6 - 20, 20, constants.YELLOW, "helvetica", constants.DARK_BLUE)
 		
 	def __str__(self): return self.text
 
