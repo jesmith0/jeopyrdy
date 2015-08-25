@@ -53,6 +53,32 @@ def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], fo
 			
 	return text_surf
 
+def menu_item(option, value, active):
+
+	option_surf = HELVETICA[50].render(option, 1, WHITE)
+	
+	# all renders fonts underlined
+	if active: HELVETICA[50].set_underline(True)
+	
+	value_surf = HELVETICA[50].render(value, 1, WHITE)
+	
+	# reset underline state
+	HELVETICA[50].set_underline(False)
+	
+	# create blank surface
+	main_surf = pygame.Surface((option_surf.get_width() + value_surf.get_width(), option_surf.get_height())).convert()
+	
+	# set transparency
+	main_surf.fill(BLUE)
+	main_surf.set_colorkey(BLUE)
+	main_surf.set_alpha(255)
+	
+	# blit surfaces
+	main_surf.blit(option_surf, (0,0))
+	main_surf.blit(value_surf, (option_surf.get_width(), 0))
+	
+	return main_surf
+	
 def board_surface():
 
 	color = YELLOW

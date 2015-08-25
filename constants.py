@@ -63,6 +63,7 @@ LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
 DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
 FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
+PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.gif")
 ################
 
 # sound objects

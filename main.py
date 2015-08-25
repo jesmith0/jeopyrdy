@@ -4,7 +4,15 @@ import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
 import constants							# LOCAL CONSTANTS
 import library								# Block OBJECT CLASS
 import util
+import menu as m
+
 from game import *							# Game OBJECT CLASS
+
+def __get_input(buzz_dev, buzz_listener):
+
+	# get input from buzzers
+	try: return buzz_dev.read(buzz_listener.bEndpointAddress, buzz_listener.wMaxPacketSize)
+	except : return None
 	
 def main():
 
@@ -25,23 +33,55 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	screen.fill(constants.BLUE)
 	
 	# SETUP CLUE LIBRARY
 	lib = util.lib_setup()
+	game_set = True
+	
+	# CREATE MENU OBJECT
+	menu = m.Menu(screen)
 	
 	# MENU LOOP
 	while (menu_active):
 	
-		print "\nMENU LOOP"
-		menu_active = False
-		game_active = True
+		# generate new game
+		if not game_set:
 		
-	# CREATE GAME OBJECT FROM res AND lib AND num_players
+			lib = util.lib_setup()
+			game_set = True
+	
+		# update display
+		pygame.display.flip()
+		
+		# check for ESCAPE key
+		for event in pygame.event.get():
+			if event.type == pygame.KEYDOWN:
+			
+				# exit from pygame
+				if event.key == pygame.K_ESCAPE:
+					game_active = False
+					menu_active = False
+		
+		if not game_active and not menu_active: continue
+		
+		# get input from buzzers
+		buzz_input = __get_input(buzz_dev, buzz_listener)
+		
+		# update menu
+		menu_active = menu.update(util.gamify_input(buzz_input))
+		
+		# check if new game
+		if menu.get_new_game(): game_set = False
+		
+		# set game active
+		if not menu_active: game_active = True
+		
+	# CREATE GAME OBJECT
 	game = Game(screen, lib, num_players, pyttsx_engine)
 		
 	# GAME LOOP
@@ -66,17 +106,13 @@ def main():
 					game.force_update_round()
 		
 		# if ESCAPE key, break before update
-		if game_active == False: continue
+		if not game_active: continue
 		
 		# update game clock
 		game.tick_game_clock(clock.tick())
-
+		
 		# get input from buzzers
-		try:
-			buzz_input = buzz_dev.read(buzz_listener.bEndpointAddress, buzz_listener.wMaxPacketSize)
-		except usb.core.USBError as e:
-			buzz_input = None
-			if e.args == ('Operation timed out'): continue
+		buzz_input = __get_input(buzz_dev, buzz_listener)
 			
 		# send input to game, update
 		print util.gamify_input(buzz_input)

@@ -31,13 +31,15 @@ class Game:
 		self.cursor_surf = gen.cursor_surface()			# returns a cursor surface
 		self.value_surfs = gen.value_surfaces()			# returns a list of two lists of value surfaces
 		
+		# SOUND CHANNELS
+		self.fj_channel = None
+		
 		# SET DAILY DOUBLES
 		self.__set_dailydoubles()
 		
 		# PLAY SOUNDS
-		if (SFX_ON):
-			THEME_SOUND.play(-1)
-			BOARDFILL_SOUND.play()
+		if SFX_ON: BOARDFILL_SOUND.play()
+		if MUSIC_ON: THEME_SOUND.play(-1)
 		
 		# INITIAL UPDATE
 		self.update()
@@ -46,7 +48,17 @@ class Game:
 		
 	def update(self, input = None):
 	
+		# final jeopardy time out
+		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
+	
 		if input:
+		
+			active_up = int(input[self.state.active_player][1])
+			active_right = int(input[self.state.active_player][2])
+			active_left = int(input[self.state.active_player][3])
+			active_down = int(input[self.state.active_player][4])
+			buzzed_green = int(input[self.state.buzzed_player][3])
+			buzzed_orange = int(input[self.state.buzzed_player][2])
 			
 			# MAIN SCREEN GAME LOGIC
 			if self.state.if_state(MAIN_STATE):
@@ -54,28 +66,27 @@ class Game:
 				# reset buzzed player variable to active player
 				if (self.state.count == 0): self.state.buzzed_player = self.state.active_player
 				
-				if int(input[self.state.active_player][1]) == 1: self.__update_cursor_loc(1)	# up = 1
-				elif int(input[self.state.active_player][2]) == 1: self.__update_cursor_loc(2)	# right = 2
-				elif int(input[self.state.active_player][3]) == 1: self.__update_cursor_loc(3)	# left = 3
-				elif int(input[self.state.active_player][4]) == 1: self.__update_cursor_loc(4)	# down = 4
+				# move cursor
+				if active_up: self.__update_cursor_loc('up')
+				elif active_right: self.__update_cursor_loc('right')
+				elif active_left: self.__update_cursor_loc('left')
+				elif active_down: self.__update_cursor_loc('down')
 				
 				# set current block to correspond with cursor's position
 				self.cur_block = self.lib[self.cur_round][self.cursor_loc[0]][self.cursor_loc[1]]
 			
-			# BET SCREEN MAIN LOGIC
+			# BET SCREEN GAME LOGIC
 			elif self.state.if_state(BET_STATE):
 			
+				# get maximum bet
 				max_bet = self.players[self.state.active_player].get_max_bet()
 			
-				# if FINAL JEOPARDY and player has no points to bet
-				if self.state.final and self.players[self.state.active_player].score <= 0: self.state.skip_player = True
-				else:
-					# set maximum bet
-					if self.state.count == 0: self.cur_bet = max_bet
-					
-					# increase/decrease current bet
-					if (int(input[self.state.active_player][1]) or int(input[self.state.active_player][2])) and (self.cur_bet + 100 <= max_bet): self.cur_bet += 100
-					elif (int(input[self.state.active_player][3]) or int(input[self.state.active_player][4])) and (self.cur_bet - 100 >= 0): self.cur_bet -= 100
+				# set maximum bet
+				if self.state.count == 0: self.cur_bet = max_bet
+				
+				# increase/decrease current bet
+				if active_up and (self.cur_bet + 100 <= max_bet): self.cur_bet += 100
+				elif active_down and (self.cur_bet - 100 >= 0): self.cur_bet -= 100
 			
 			# DISPLAY CLUE SCREEN GAME LOGIC
 			elif self.state.if_state(SHOW_CLUE_STATE):
@@ -97,7 +108,7 @@ class Game:
 					self.state.set_buzzed_player(buzzed_players[random.randint(0, len(buzzed_players)-1)])
 					
 					# play 'ring in' sound
-					if not self.state.dailydouble and not self.state.final: BUZZ_SOUND.play()
+					if SFX_ON and not self.state.dailydouble and not self.state.final: BUZZ_SOUND.play()
 			
 			# BUZZED-IN SCREEN GAME LOGIC
 			elif self.state.if_state(BUZZED_STATE): pass
@@ -105,20 +116,23 @@ class Game:
 			# DISPLAY RESPONSE SCREEN GAME LOGIC
 			elif self.state.if_state(SHOW_RESP_STATE): 
 			
-				### BUGGY WHEN DAILY DOUBLE TIMEOUT ###
-				print self.state.count
-				if self.state.buzzed_timeout and self.state.count == 0: self.__update_points(False)
+				# if timed out, subtract points
+				if self.state.buzzed_timeout and not self.state.points_updated:
+				
+					self.__update_points(False)
+					self.state.points_updated = True
 			
 			# CHECK RESPONSE SCREEN GAME LOGIC
 			elif self.state.if_state(CHECK_STATE):
 				
-				# player indicates CORRECT/INCORRECT
-				if int(input[self.state.buzzed_player][3]):
+				# add points
+				if buzzed_green:
+				
 					self.__update_points()
 					self.state.active_player = self.state.buzzed_player
 					
-				elif int(input[self.state.buzzed_player][2]) or self.state.buzzed_timeout:
-					self.__update_points(False)
+				# subtract points
+				elif buzzed_orange or self.state.buzzed_timeout: self.__update_points(False)
 			
 			# FINAL JEOPARDY BET SCREEN GAME LOGIC
 			elif self.state.if_state(FINAL_BET_STATE):
@@ -134,13 +148,17 @@ class Game:
 				# on completion, notify state object
 				if completed:
 				
-					FINALJEP_SOUND.play()
-					
+					# update state
 					self.state.all_bets_set = True
+				
+					# play final jeopardy music
+					self.fj_channel = FINALJEP_SOUND.play()
+					
+					# mute is sound effects off
+					if not SFX_ON: self.fj_channel.set_volume(0)
 					
 					# set up check state
 					for player in self.players:		
-						print player.cur_bet
 						if player.cur_bet <= 0: player.check_set = True
 			
 			# FINAL JEOPARDY CHECK SCREEN GAME LOGIC
@@ -148,10 +166,6 @@ class Game:
 					
 				# process input
 				self.__proc_final_input(input)
-				
-				for player in self.players:
-					print player.cur_bet
-				print
 				
 				# check if completed
 				completed = True
@@ -401,7 +415,7 @@ class Game:
 		# blit winners
 		for i in range(len(winners)):
 			char_surf = winners[i].char_surface
-			self.screen.blit(pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3)), (i*300, 100))
+			self.screen.blit(pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3)), (i*300, 150))
 		
 		self.screen.blit(gen.text_surface("CONGRATULATIONS!!!"), (0,-200))
 		
@@ -442,22 +456,22 @@ class Game:
 	def __update_cursor_loc(self, direction):
 	
 		# up
-		if direction == 1:		
+		if direction == 'up':		
 			if self.cursor_loc[1] > 0: self.cursor_loc[1] -= 1
 			else: self.cursor_loc[1] = 4
 		
 		# right
-		elif direction == 2:
+		elif direction == 'right':
 			if self.cursor_loc[0] < 5: self.cursor_loc[0] += 1
 			else: self.cursor_loc[0] = 0
 		
 		# left
-		elif direction == 3:
+		elif direction == 'left':
 			if self.cursor_loc[0] > 0: self.cursor_loc[0] -= 1
 			else: self.cursor_loc[0] = 5
 		
 		# down
-		elif direction == 4:
+		elif direction == 'down':
 			if self.cursor_loc[1] < 4: self.cursor_loc[1] += 1
 			else: self.cursor_loc[1] = 0
 				
@@ -506,4 +520,4 @@ class Game:
 		
 		# set current block to final jeopardy block
 		self.cur_block = self.lib[2][0][0]
-		self.cur_bet = self.players[self.state.active_player].get_max_bet()
+		# self.cur_bet = self.players[self.state.active_player].get_max_bet()
