@@ -5,25 +5,28 @@ from constants import *
 
 class Game:
 
-	def __init__(self, screen, lib, num_players, pyttsx_engine):
+	def __init__(self, screen, lib, active_players, pyttsx_engine, sfx_on, speech_on):
 	
 		# STATIC VARIABLES
 		self.screen = screen
 		self.lib = lib
-		self.num_players = num_players
+		self.num_players = 4
+		self.active_players = active_players
+		self.SFX_ON = sfx_on
+		self.SPEECH_ON = speech_on
 		
 		# TTS OBJECT
 		self.pyttsx_engine = pyttsx_engine
 		
 		# STATE VARIABLES
-		self.state = state.State()
+		self.state = state.State(sfx_on)
 		self.cursor_loc = [0,0]
 		self.cur_round = 0
 		self.cur_block = self.lib[0][0][0]
 		self.cur_bet = 0 ### reduce to player object ###
 		
 		# PLAYER OBJECTS
-		self.players = util.init_player_objects(self.num_players)
+		self.players = util.init_player_objects(self.active_players)
 		
 		# GENERATE STATIC SURFACES
 		self.board_surf = gen.board_surface()			# returns a blank board surface
@@ -38,8 +41,7 @@ class Game:
 		self.__set_dailydoubles()
 		
 		# PLAY SOUNDS
-		if SFX_ON: BOARDFILL_SOUND.play()
-		if MUSIC_ON: THEME_SOUND.play(-1)
+		if self.SFX_ON: BOARDFILL_SOUND.play()
 		
 		# INITIAL UPDATE
 		self.update()
@@ -108,7 +110,7 @@ class Game:
 					self.state.set_buzzed_player(buzzed_players[random.randint(0, len(buzzed_players)-1)])
 					
 					# play 'ring in' sound
-					if SFX_ON and not self.state.dailydouble and not self.state.final: BUZZ_SOUND.play()
+					if self.SFX_ON and not self.state.dailydouble and not self.state.final: BUZZ_SOUND.play()
 			
 			# BUZZED-IN SCREEN GAME LOGIC
 			elif self.state.if_state(BUZZED_STATE): pass
@@ -155,7 +157,7 @@ class Game:
 					self.fj_channel = FINALJEP_SOUND.play()
 					
 					# mute is sound effects off
-					if not SFX_ON: self.fj_channel.set_volume(0)
+					if not self.SFX_ON: self.fj_channel.set_volume(0)
 					
 					# set up check state
 					for player in self.players:		
@@ -217,7 +219,7 @@ class Game:
 		
 			# increment round, play sound
 			self.cur_round += 1
-			if SFX_ON: BOARDFILL_SOUND.play()
+			if self.SFX_ON: BOARDFILL_SOUND.play()
 			
 			# initiate final jeopardy
 			if self.cur_round == 2:
@@ -306,7 +308,7 @@ class Game:
 		self.screen.blit(text_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
 		
 		# read clue/response
-		if (self.state.if_state(SHOW_CLUE_STATE) or self.state.if_state(SHOW_RESP_STATE) or (self.state.if_state(BUZZED_STATE) and self.state.dailydouble)) and (self.state.count == 0):
+		if self.SPEECH_ON and ((self.state.if_state(SHOW_CLUE_STATE) or self.state.if_state(SHOW_RESP_STATE) or (self.state.if_state(BUZZED_STATE) and self.state.dailydouble)) and (self.state.count == 0)):
 			try: self.pyttsx_engine.say(str(tts).decode('utf-8'))
 			except UnicodeDecodeError: self.pyttsx_engine.say('Unicode Decode Error')
 			except: self.pyttsx_engine.say('Unknown Error')
@@ -447,7 +449,9 @@ class Game:
 			# calculate location
 			blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
 			
-			if (self.state.if_state(FINAL_BET_STATE) and self.players[i].bet_set) or (self.state.if_state(FINAL_CHECK_STATE) and self.players[i].check_set):
+			if not self.players[i].playing: util.blit_alpha(screen, char_surfs[i], blit_loc, 0)
+			
+			elif (self.state.if_state(FINAL_BET_STATE) and self.players[i].bet_set) or (self.state.if_state(FINAL_CHECK_STATE) and self.players[i].check_set):
 				util.blit_alpha(screen, char_surfs[i], blit_loc, 25)
 				
 			else: screen.blit(char_surfs[i], blit_loc)
@@ -511,7 +515,7 @@ class Game:
 			self.players[self.state.buzzed_player].add_to_score(points)
 		else:
 			self.players[self.state.buzzed_player].sub_from_score(points)
-			WRONG_SOUNDS[self.state.buzzed_player].play()
+			if self.SFX_ON: self.players[self.state.buzzed_player].play_wrong()
 			
 	def __init_final(self):
 	

@@ -3,6 +3,7 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
+NUM_SPRITES = 4
 ################
 
 # addressing
@@ -63,7 +64,7 @@ LOGO_IMAGE = pygame.image.load(IMAGE_PATH + "logo.png")
 DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
 FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
-PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.gif")
+PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.png")
 ################
 
 # sound objects

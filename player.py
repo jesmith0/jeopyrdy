@@ -2,10 +2,11 @@ import pygame, constants, util, gen
 
 class Player:
 
-	def __init__(self, num):
+	def __init__(self, num, playing):
 	
 		self.num = num
 		self.score = 0
+		self.playing = playing
 		
 		# state variables
 		self.active = False
@@ -20,15 +21,19 @@ class Player:
 		self.check_set = False
 		
 		# initialize surfaces
-		self.blank_char_surface = self.__generate_char_surface(self.num)
-		self.char_surface = self.__generate_char_surface(self.num)
+		self.blank_char_surface = gen.char_surface(num)
+		self.char_surface = gen.char_surface(num)
 		
 		# load sound clips
 		self.correct_sound = None
-		self.incorrect_sound = None
+		self.incorrect_sound = constants.WRONG_SOUNDS[self.num - 1]
 		
 		# blit initial score
 		self.add_to_score(0)
+		
+	def play_wrong(self): self.incorrect_sound.play()
+	
+	def play_right(self): self.correct_sound.play()
 		
 	def get_max_bet(self):
 	
@@ -83,19 +88,3 @@ class Player:
 		self.char_surface.fill(constants.DARK_BLUE)
 		self.char_surface.blit(self.blank_char_surface, (0,0))
 		self.char_surface.blit(gen.text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 30, color, "digital", constants.BLUE), (0, 70))
-	
-	# GENERATE BLANK CHARACTER SURFACE
-	def __generate_char_surface(self, num):
-	
-		# create blank surface
-		char_surf = pygame.Surface(constants.CHAR_SIZE).convert()
-		
-		# fill and set alpha
-		char_surf.fill(constants.DARK_BLUE)
-		char_surf.set_colorkey(constants.DARK_BLUE)
-		char_surf.set_alpha(255)
-		
-		# blit slice from character image
-		char_surf.blit(constants.CHARACTERS_IMAGE, (0, 0), (num*180, 0, 180, 200))
-		
-		return char_surf

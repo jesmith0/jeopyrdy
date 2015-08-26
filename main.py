@@ -18,7 +18,6 @@ def main():
 
 	menu_active = True
 	game_active = False
-	num_players = 4
 
 	# SETUP USB BUZZERS
 	buzz_dev = usb.core.find()
@@ -33,30 +32,33 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	screen.fill(constants.BLUE)
 	
 	# SETUP CLUE LIBRARY
-	lib = util.lib_setup()
-	game_set = True
+	#lib = util.lib_setup()
+	#game_set = True
 	
 	# CREATE MENU OBJECT
 	menu = m.Menu(screen)
+	game_set = False
 	
 	# MENU LOOP
 	while (menu_active):
 	
+		# update display
+		pygame.display.flip()
+		
 		# generate new game
 		if not game_set:
 		
-			lib = util.lib_setup()
+			setup_ret = util.lib_setup()
+			lib = setup_ret[0]
+			menu.set_game_date(setup_ret[1][0])
 			game_set = True
-	
-		# update display
-		pygame.display.flip()
 		
 		# check for ESCAPE key
 		for event in pygame.event.get():
@@ -73,7 +75,12 @@ def main():
 		buzz_input = __get_input(buzz_dev, buzz_listener)
 		
 		# update menu
-		menu_active = menu.update(util.gamify_input(buzz_input))
+		menu_ret = menu.update(util.gamify_input(buzz_input))
+		menu_active = menu_ret[0]
+		active_players = menu_ret[1]
+		sfx_on = menu_ret[2]
+		speech_on = menu_ret[3]
+		
 		
 		# check if new game
 		if menu.get_new_game(): game_set = False
@@ -82,7 +89,7 @@ def main():
 		if not menu_active: game_active = True
 		
 	# CREATE GAME OBJECT
-	game = Game(screen, lib, num_players, pyttsx_engine)
+	game = Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
 		
 	# GAME LOOP
 	while (game_active):

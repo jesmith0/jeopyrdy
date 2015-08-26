@@ -95,6 +95,7 @@ def parse_jarchive():
 	clue = []
 	resp = []
 	res = []
+	info = []
 	
 	res_count = 0
 
@@ -110,7 +111,7 @@ def parse_jarchive():
 			clue.append(line)
 			res.append(None)
 		elif 'class="category_name">' in line: cat.append(line)
-		elif 'id="game_title">' in line: pygame.display.set_caption(line[line.find('id="game_title"><h1>')+20:line.find('</h1>')].upper())
+		elif 'id="game_title">' in line: info.append(line[line.find('id="game_title"><h1>')+20:line.find('</h1>')].upper())
 	
 	# retrieves responses
 	for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
@@ -134,7 +135,7 @@ def parse_jarchive():
 		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
 	
 	# RETURN LIBRARY
-	return [cat, clue, resp]
+	return [cat, clue, resp, info]
 	
 	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
 
@@ -169,12 +170,25 @@ def lib_setup():
 	
 	print "LIBRARY (setup):\tOK"
 	
-	return gen_lib_object(parsed_data)
+	return [gen_lib_object(parsed_data), parsed_data[-1]]
 
-def init_player_objects(num_players):
+# initialize player objects
+def init_player_objects(active_players):
 
 	players = []
-	for i in range(num_players): players.append(player.Player(i))
+	used_nums = []
+	
+	num = random.randint(1, constants.NUM_SPRITES)
+	
+	for i in range(4):
+	
+		while num in used_nums:
+			num = random.randint(1, constants.NUM_SPRITES)
+		
+		used_nums.append(num)
+		
+		players.append(player.Player(num, active_players[i]))
+	
 	return players
 	
 # GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME

@@ -147,6 +147,21 @@ def value_surfaces():
 	
 	return value_surfs
 
+def char_surface(num):
+	
+	# create blank surface
+	char_surf = pygame.Surface(CHAR_SIZE).convert()
+	
+	# fill and set alpha
+	char_surf.fill(DARK_BLUE)
+	char_surf.set_colorkey(DARK_BLUE)
+	char_surf.set_alpha(255)
+	
+	# blit slice from character image
+	char_surf.blit(CHARACTERS_IMAGE, (0, 0), (num*180, 0, 180, 200))
+	
+	return char_surf
+	
 def correct_surface(correct = True):
 
 	# generate text surface

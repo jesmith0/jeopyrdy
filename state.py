@@ -4,10 +4,11 @@ from constants import *
 
 class State:
 
-	def __init__(self):
+	def __init__(self, sfx_on):
 		
 		self.cur_state = MAIN_STATE
 		self.game_clock = 0
+		self.SFX_ON = sfx_on
 		
 		# PLAYER STATES
 		self.active_player = 0
@@ -36,9 +37,6 @@ class State:
 		# players bet first
 		self.final = True
 		self.cur_state = FINAL_BET_STATE
-		
-		# P1 is first to bet
-		# self.active_player = 0
 		
 	def update(self, input, cur_block = None):
 	
@@ -80,7 +78,7 @@ class State:
 				
 					self.cur_state = BET_STATE
 					self.dailydouble = True
-					DAILYDOUBLE_SOUND.play()
+					if self.SFX_ON: DAILYDOUBLE_SOUND.play()
 				
 				else: self.cur_state = SHOW_CLUE_STATE
 				
@@ -101,7 +99,7 @@ class State:
 			
 				if not timedout and not self.final: self.cur_state = BUZZED_STATE
 				else:
-					TIMEOUT_SOUND.play()
+					if self.SFX_ON: TIMEOUT_SOUND.play()
 					time.sleep(1)
 					self.clue_timeout = True
 					
@@ -115,7 +113,7 @@ class State:
 				
 				if timedout:
 				
-					TIMEOUT_SOUND.play()
+					if self.SFX_ON: TIMEOUT_SOUND.play()
 					time.sleep(1)
 					self.buzzed_timeout = True
 				
