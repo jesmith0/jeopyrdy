@@ -2,11 +2,12 @@ import util, constants, pygame, gen
 
 class Block:
 
-	def __init__(self, category, clue, response):
+	def __init__(self, category, clue, response, resource):
 	
 		self.category = category
 		self.clue = clue
 		self.response = response
+		self.resource = resource
 		
 	def cat_board_surface(self): return self.category.board_surface
 	
@@ -67,3 +68,19 @@ class Response:
 		# CALL TO __generate_surface()
 		
 	def __str__(self): return self.text
+	
+class Resource:
+
+	def __init__(self, res):
+	
+		# data
+		self.res = res
+		self.surface = self.__generate_surf(res)
+		
+	def __generate_surf(self, res):
+	
+		if res: return pygame.image.load(res)
+		
+		else: return None
+		
+	def __str__(self): return self.res

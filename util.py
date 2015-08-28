@@ -79,15 +79,15 @@ def get_resource(text, num):
 		# attempt to pull image from j-archive.com
 		try:
 			res = urllib.urlretrieve(text[text.find("http://"):text.find('.jpg')+4], constants.TEMP_PATH + "temp" + str(num) + ".jpg")
-			print res
-			return res
+			
+			if "text/html" in str(res[1]): return None
+			else: return res[0]
+			
 		except:
 			# google image search
 			print "url non-responsive"
-	
+		
 	return None
-	
-	# TODO: DETECT 404 ERRORS
 	
 def parse_jarchive():
 
@@ -135,7 +135,7 @@ def parse_jarchive():
 		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
 	
 	# RETURN LIBRARY
-	return [cat, clue, resp, info]
+	return [cat, clue, resp, res, info]
 	
 	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
 
@@ -144,6 +144,7 @@ def gen_lib_object(parsed):
 	cat = gamify_list(parsed[0])
 	clue = gamify_list(parsed[1])
 	resp = gamify_list(parsed[2])
+	res = gamify_list(parsed[3])
 	
 	lib = []
 
@@ -155,7 +156,7 @@ def gen_lib_object(parsed):
 		for j in range(len(clue[i])):
 			lib[-1].append([])
 			for k in range(len(clue[i][j])):
-				lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]), library.Response(resp[i][j][k])))
+				lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]), library.Response(resp[i][j][k]), library.Resource(res[i][j][k])))
 		
 	return lib
 	

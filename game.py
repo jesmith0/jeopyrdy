@@ -301,9 +301,16 @@ class Game:
 		# scale character surface
 		scaled_image = pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3))
 		
+		res_surface = self.cur_block.resource.surface
+		
 		# blit character and text to screen
 		util.blit_alpha(self.screen, scaled_image, (0, DISPLAY_RES[1]-scaled_image.get_height()), 100)
 		self.screen.blit(char_surf, (0, DISPLAY_RES[1]-char_surf.get_height()))
+		
+		if res_surface:
+			res_surface = pygame.transform.scale(res_surface, (res_surface.get_width()/2, res_surface.get_height()/2))
+			self.screen.blit(res_surface, (DISPLAY_RES[0]/2 - res_surface.get_width()/2, 400))
+		
 		self.screen.blit(clue_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2, -200))
 		self.screen.blit(text_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
 		

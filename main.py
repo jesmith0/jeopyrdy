@@ -4,6 +4,7 @@ import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
 import constants							# LOCAL CONSTANTS
 import library								# Block OBJECT CLASS
 import util
+import platform
 import menu as m
 
 from game import *							# Game OBJECT CLASS
@@ -18,11 +19,10 @@ def main():
 
 	menu_active = True
 	game_active = False
-
-	# SETUP USB BUZZERS
-	buzz_dev = usb.core.find()
-	try: buzz_listener = util.buzz_setup(buzz_dev)
-	except: print "BUZZERS (setup):\tFAILED"
+	
+	buzz_dev = None
+	menu = None
+	game = None
 	
 	# INITIALIZE ALL IMPORTED PYGAME/PYTTSX MODULES
 	pygame.init()
@@ -36,12 +36,6 @@ def main():
 	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
-	screen.fill(constants.BLUE)
-	
-	# SETUP CLUE LIBRARY
-	#lib = util.lib_setup()
-	#game_set = True
-	
 	# CREATE MENU OBJECT
 	menu = m.Menu(screen)
 	game_set = False
@@ -52,7 +46,17 @@ def main():
 		# update display
 		pygame.display.flip()
 		
-		# generate new game
+		# tick clock
+		# if (clock.tick() % 1000 == 0) check_buzzer = usb.core.find()
+		
+		# SETUP USB BUZZERS
+		if not buzz_dev:
+		
+			buzz_dev = usb.core.find()
+			try: buzz_listener = util.buzz_setup(buzz_dev)
+			except: print "BUZZERS (setup):\tFAILED"
+		
+		# GENERATE NEW GAME
 		if not game_set:
 		
 			setup_ret = util.lib_setup()
@@ -69,30 +73,35 @@ def main():
 					game_active = False
 					menu_active = False
 		
+		# exiting from pygame
 		if not game_active and not menu_active: continue
 		
-		# get input from buzzers
-		buzz_input = __get_input(buzz_dev, buzz_listener)
+		# device set up properly
+		if buzz_dev:
 		
-		# update menu
-		menu_ret = menu.update(util.gamify_input(buzz_input))
-		menu_active = menu_ret[0]
-		active_players = menu_ret[1]
-		sfx_on = menu_ret[2]
-		speech_on = menu_ret[3]
+			# get input from buzzers
+			buzz_input = __get_input(buzz_dev, buzz_listener)
 		
-		
-		# check if new game
-		if menu.get_new_game(): game_set = False
-		
-		# set game active
-		if not menu_active: game_active = True
-		
-	# CREATE GAME OBJECT
-	game = Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
+			# update menu
+			menu_ret = menu.update(util.gamify_input(buzz_input))
+			
+			# assign game variables
+			menu_active = menu_ret[0]
+			active_players = menu_ret[1]
+			sfx_on = menu_ret[2]
+			speech_on = menu_ret[3]
+				
+			# check if new game
+			if menu.get_new_game(): game_set = False
+			
+			# set game active
+			if not menu_active: game_active = True
 		
 	# GAME LOOP
 	while (game_active):
+	
+		# CREATE GAME OBJECT
+		if not game: game = Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
 	
 		# update display, pump event queue
 		pygame.display.flip()
@@ -128,6 +137,17 @@ def main():
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM
 	pygame.quit()
 	usb.util.dispose_resources(buzz_dev)
+	
+	# DELETE PULLED IMAGE FILES
+	if 'Windows' in platform.system(): path = 'temp\\'
+	else: path = 'temp/'
+	
+	num = 0
+	while num >= 0:
+		try:
+			os.remove(path + 'temp' + str(num) + '.jpg')
+			num += 1
+		except: num = -1
 	
 	print "PROGRAM HALT"
 

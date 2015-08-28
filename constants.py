@@ -3,7 +3,7 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
-NUM_SPRITES = 4
+NUM_SPRITES = 5
 ################
 
 # addressing
@@ -83,6 +83,7 @@ WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "alex_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "sean_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "burt_wrong.ogg"))
 WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg"))
+WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg")) # PLACEHOLDER FOR WATSON'S SOUND
 ################
 
 # state constants
