@@ -1,4 +1,4 @@
-import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, library
+import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, library, os, platform
 
 # GLOBAL VARIABLES
 image_count = 0
@@ -173,6 +173,18 @@ def lib_setup():
 	
 	return [gen_lib_object(parsed_data), parsed_data[-1]]
 
+def del_temp_files():
+
+	if 'Windows' in platform.system(): path = 'temp\\'
+	else: path = 'temp/'
+	
+	num = 0
+	while num >= 0:
+		try:
+			os.remove(path + 'temp' + str(num) + '.jpg')
+			num += 1
+		except: num = -1
+	
 # initialize player objects
 def init_player_objects(active_players):
 

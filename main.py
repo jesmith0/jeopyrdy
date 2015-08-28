@@ -4,7 +4,6 @@ import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
 import constants							# LOCAL CONSTANTS
 import library								# Block OBJECT CLASS
 import util
-import platform
 import menu as m
 
 from game import *							# Game OBJECT CLASS
@@ -139,15 +138,7 @@ def main():
 	usb.util.dispose_resources(buzz_dev)
 	
 	# DELETE PULLED IMAGE FILES
-	if 'Windows' in platform.system(): path = 'temp\\'
-	else: path = 'temp/'
-	
-	num = 0
-	while num >= 0:
-		try:
-			os.remove(path + 'temp' + str(num) + '.jpg')
-			num += 1
-		except: num = -1
+	util.del_temp_files()
 	
 	print "PROGRAM HALT"
 
