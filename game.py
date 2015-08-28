@@ -48,10 +48,14 @@ class Game:
 		
 	def tick_game_clock(self, ms): self.state.game_clock += ms
 		
-	def update(self, input = None):
+	def update(self, dirty_input = None):
 	
 		# final jeopardy time out
 		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
+		
+		# sets input value of all inactive players to 0
+		if dirty_input: input = self.__clean_input(dirty_input)
+		else: input = None
 	
 		if input:
 		
@@ -510,6 +514,20 @@ class Game:
 				if not block.clue_completed(): return False
 		
 		return True
+		
+	def __clean_input(self, dirty_input):
+	
+		clean_input = dirty_input
+	
+		# number of buzzers per device
+		for i in range(4):
+		
+			# number of buttons per buzzer
+			for j in range(5):
+			
+				if not self.players[i].playing: clean_input[i][j] = 0
+			
+		return clean_input
 	
 	# by default ADD points
 	def __update_points(self, add = True):
