@@ -15,13 +15,10 @@ class State:
 		self.buzzed_player = 0
 		self.hold_active = 0
 		
-		# STATE COUNT
-		self.count = 0
-		
 		# HELPER STATES
+		self.init = True
 		self.final = False
 		self.dailydouble = False
-		self.button_raised = False
 		self.buzzed_timeout = False
 		self.clue_timeout = False
 		self.points_updated = False
@@ -41,13 +38,10 @@ class State:
 	def update(self, input, cur_block = None):
 	
 		# RESET CLOCK
-		if self.count == 0: self.game_clock = 0
+		if self.init: self.game_clock = 0
 		
 		# RESET VARIABLES
 		self.check_round = False
-	
-		# INCREMENT STATE COUNT
-		self.count += 1
 		
 		# CHECK IF STATE TIMED OUT
 		timedout = self.__check_timeout()
@@ -83,9 +77,10 @@ class State:
 				else: self.cur_state = SHOW_CLUE_STATE
 				
 				self.__end_state()
+				return
 			
 			# BETTING SCREEN STATE LOGIC
-			elif self.if_state(BET_STATE) and self.__check_button_raised(input, 0) and active_down:
+			elif self.if_state(BET_STATE) and active_down:
 				
 				self.cur_state = BUZZED_STATE
 				
@@ -93,9 +88,10 @@ class State:
 				self.buzzed_player = self.active_player
 				
 				self.__end_state()
+				return
 			
 			# DISPLAY CLUE SCREEN STATE LOGIC
-			elif self.if_state(SHOW_CLUE_STATE) and ((( timedout or (not self.final and self.__check_button_raised(input, 0, False) and buzzed_down) ))):
+			elif self.if_state(SHOW_CLUE_STATE) and ((( timedout or (not self.final and buzzed_down) ))):
 			
 				if not timedout and not self.final: self.cur_state = BUZZED_STATE
 				else:
@@ -107,6 +103,7 @@ class State:
 					else: self.cur_state = SHOW_RESP_STATE
 				
 				self.__end_state()
+				return
 				
 			# BUZZED IN SCREEN STATE LOGIC
 			elif self.if_state(BUZZED_STATE) and ((( timedout or (self.game_clock >= DELAY and buzzed_down) ))):
@@ -120,10 +117,10 @@ class State:
 				self.cur_state = SHOW_RESP_STATE
 				
 				self.__end_state()
+				return
 			
 			# DISPLAY RESPONSE SCREEN STATE LOGIC
-			elif self.if_state(SHOW_RESP_STATE) and (((( timedout and self.__check_button_raised(input, 0) and active_down ))) \
-										or ((( not timedout and buzzed_down ))) ):
+			elif self.if_state(SHOW_RESP_STATE) and (((( timedout and active_down ))) or ((( not timedout and buzzed_down ))) ):
 				
 				# timed out
 				if (self.buzzed_timeout or self.clue_timeout) and not self.final:
@@ -136,6 +133,7 @@ class State:
 				else: self.cur_state = CHECK_STATE
 			
 				self.__end_state()
+				return
 			
 			# CHECK RESPONSE SCREEN STATE LOGIC
 			elif self.if_state(CHECK_STATE) and (check_down or self.buzzed_timeout):
@@ -144,28 +142,23 @@ class State:
 				self.check_round = True
 				
 				self.__end_state()
+				return
 			
 			# FINAL BET SCREEN STATE LOGIC
 			elif self.if_state(FINAL_BET_STATE) and self.all_bets_set:
 			
 				self.cur_state = SHOW_CLUE_STATE
 				self.all_bets_set = False
+				return
 			
 			# FINAL CHECK SCREEN STATE LOGIC
 			elif self.if_state(FINAL_CHECK_STATE) and self.all_checks_set:
 			
 				self.cur_state = END_STATE
 				self.all_checks_set = False
-		
-	def __check_button_raised(self, input, button, active = True):
-	
-		if not self.button_raised:
-			
-			# check active/buzzed player
-			if active and not int(input[self.active_player][button]): self.button_raised = True
-			elif not active and not int(input[self.buzzed_player][button]): self.button_raised = True
-		
-		return self.button_raised
+				return
+				
+		self.init = False
 	
 	def __check_timeout(self):
 	
@@ -176,8 +169,7 @@ class State:
 		
 	def __end_state(self):
 	
-		self.count = 0
-		self.button_raised = False
+		self.init = True
 		
 	def if_state(self, state):
 	

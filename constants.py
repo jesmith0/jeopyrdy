@@ -4,6 +4,7 @@ import platform, pygame
 ################
 MAX_GAME = 4985
 NUM_SPRITES = 5
+NUM_PLAYERS = 4
 ################
 
 # addressing
@@ -65,6 +66,7 @@ DDBG_IMAGE = pygame.image.load(IMAGE_PATH + "ddbackground.jpg")
 FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
 PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.png")
+ICON_IMAGE = pygame.image.load(IMAGE_PATH + "icon.png")
 ################
 
 # sound objects
@@ -75,15 +77,6 @@ TIMEOUT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "timeout.ogg")
 BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
 DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
 FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
-
-RIGHT_SOUNDS = []
-
-WRONG_SOUNDS = []
-WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "alex_wrong.ogg"))
-WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "sean_wrong.ogg"))
-WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "burt_wrong.ogg"))
-WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg"))
-WRONG_SOUNDS.append(pygame.mixer.Sound(MUSIC_PATH + "french_wrong.ogg")) # PLACEHOLDER FOR WATSON'S SOUND
 ################
 
 # state constants

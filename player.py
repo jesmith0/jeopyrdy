@@ -26,7 +26,7 @@ class Player:
 		
 		# load sound clips
 		self.correct_sound = None
-		self.incorrect_sound = constants.WRONG_SOUNDS[self.num - 1]
+		self.incorrect_sound = pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg")
 		
 		# blit initial score
 		self.add_to_score(0)
@@ -35,11 +35,24 @@ class Player:
 	
 	def play_right(self): self.correct_sound.play()
 		
-	def get_max_bet(self):
+	def get_max_bet(self, final = False):
 	
 		# determine maximum bet from player score
-		if self.score <= 1000: return 1000
+		if self.score <= 1000 and not final: return 1000
 		else: return self.score
+		
+	def set_bet_to_max(self, final = False):
+	
+		self.cur_bet = self.get_max_bet(final)
+		self.bet_set = True
+	
+	def inc_bet(self, final = False):
+		
+		if self.cur_bet + 100 <= self.get_max_bet(final): self.cur_bet += 100
+	
+	def dec_bet(self):
+		
+		if self.cur_bet - 100 >= 0: self.cur_bet -= 100
 		
 	def setup_bet(self, final = False):
 	
@@ -52,6 +65,12 @@ class Player:
 			else: self.bet_set = True
 			
 		self.__update_char_surface(self.cur_bet)
+		
+	def reset_bet(self):
+	
+		self.cur_bet = 0
+		self.is_betting = False
+		self.bet_set = False
 	
 	# ADD TO PLAYER BET, UPDATE SURFACE
 	def add_to_bet(self):
@@ -87,4 +106,4 @@ class Player:
 		# update player surface
 		self.char_surface.fill(constants.DARK_BLUE)
 		self.char_surface.blit(self.blank_char_surface, (0,0))
-		self.char_surface.blit(gen.text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 30, color, "digital", constants.BLUE), (0, 70))
+		self.char_surface.blit(gen.text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 35, color, "digital", constants.BLUE), (0, 71))

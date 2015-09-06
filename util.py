@@ -46,6 +46,27 @@ def gamify_input(buzz_input):
 		b4 = [bin_input[1][0], bin_input[2][4], bin_input[2][5], bin_input[2][6], bin_input[2][7]]
 		
 		return [b1, b2, b3, b4]
+		
+def gamify_input(button, up, timeout = False):
+
+	if timeout: return None
+	else:
+
+		map = [[0, 4, 3, 2, 1], [5, 9, 8, 7, 6], [10, 14, 13, 12, 11], [15, 19, 18, 17, 16]]
+		ret = []
+		arr = []
+		
+		for set in map:
+		
+			if button in set:
+				for value in set:
+					if button == value and up: arr.append(1)
+					else: arr.append(0)
+				ret.append(arr)
+					
+			else: ret.append([0, 0, 0, 0, 0])
+		
+		return ret
 
 def scrub_text(text):
 
@@ -173,7 +194,7 @@ def lib_setup():
 	
 	return [gen_lib_object(parsed_data), parsed_data[-1]]
 
-def del_temp_files():
+def dtf():
 
 	if 'Windows' in platform.system(): path = 'temp\\'
 	else: path = 'temp/'

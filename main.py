@@ -1,27 +1,20 @@
-import pygame, os							# FOR GUI
-import usb.core, usb.util					# FOR USB BUZZER INTERFACING
-import random, urllib, urllib2				# FOR GENERATING A CLUE LIBRARY
-import constants							# LOCAL CONSTANTS
-import library								# Block OBJECT CLASS
-import util
-import menu as m
-
-from game import *							# Game OBJECT CLASS
-
-def __get_input(buzz_dev, buzz_listener):
-
-	# get input from buzzers
-	try: return buzz_dev.read(buzz_listener.bEndpointAddress, buzz_listener.wMaxPacketSize)
-	except : return None
+import pygame, os					# FOR GUI
+import random, urllib, urllib2		# FOR GENERATING A CLUE LIBRARY
+import library, constants, util		# LOCAL LIBRARIES
+import pyttsx
+import menu as m					# Menu OBJECT CLASS
+import game as g					# Game OBJECT CLASS
 	
 def main():
 
 	menu_active = True
 	game_active = False
-	
-	buzz_dev = None
+
 	menu = None
 	game = None
+	buzzer = None
+	
+	timeout = 0
 	
 	# INITIALIZE ALL IMPORTED PYGAME/PYTTSX MODULES
 	pygame.init()
@@ -35,6 +28,10 @@ def main():
 	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
+	# SET ICON AND CAPTION
+	pygame.display.set_caption("PYTHON Jeopardy")
+	pygame.display.set_icon(constants.ICON_IMAGE)
+	
 	# CREATE MENU OBJECT
 	menu = m.Menu(screen)
 	game_set = False
@@ -45,15 +42,14 @@ def main():
 		# update display
 		pygame.display.flip()
 		
-		# tick clock
-		# if (clock.tick() % 1000 == 0) check_buzzer = usb.core.find()
-		
 		# SETUP USB BUZZERS
-		if not buzz_dev:
+		while(not buzzer):
 		
-			buzz_dev = usb.core.find()
-			try: buzz_listener = util.buzz_setup(buzz_dev)
-			except: print "BUZZERS (setup):\tFAILED"
+			for i in range(0, pygame.joystick.get_count()):
+	
+				if pygame.joystick.Joystick(i).get_name() == 'Buzz':
+					buzzer = pygame.joystick.Joystick(i)
+					buzzer.init()
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -63,44 +59,49 @@ def main():
 			menu.set_game_date(setup_ret[1][0])
 			game_set = True
 		
-		# check for ESCAPE key
+		# GET EVENTS FROM QUEUE
 		for event in pygame.event.get():
+		
+			# check for escape
 			if event.type == pygame.KEYDOWN:
 			
 				# exit from pygame
 				if event.key == pygame.K_ESCAPE:
 					game_active = False
 					menu_active = False
-		
-		# exiting from pygame
-		if not game_active and not menu_active: continue
-		
-		# device set up properly
-		if buzz_dev:
-		
-			# get input from buzzers
-			buzz_input = __get_input(buzz_dev, buzz_listener)
-		
-			# update menu
-			menu_ret = menu.update(util.gamify_input(buzz_input))
 			
-			# assign game variables
-			menu_active = menu_ret[0]
-			active_players = menu_ret[1]
-			sfx_on = menu_ret[2]
-			speech_on = menu_ret[3]
+			# check for button down
+			elif event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
 				
-			# check if new game
-			if menu.get_new_game(): game_set = False
+				menu_ret = menu.update(util.gamify_input(event.button, event.type == pygame.JOYBUTTONUP))
+				
+				menu_active = menu_ret[0]
+				active_players = menu_ret[1]
+				sfx_on = menu_ret[2]
+				speech_on = menu_ret[3]
+				
+				if menu.get_new_game(): game_set = False
+				if not menu_active: game_active = True
 			
-			# set game active
-			if not menu_active: game_active = True
+			### WHAT DOES THIS MEAN??!! ###
+			elif event.type == pygame.JOYAXISMOTION:
+			
+				print event.axis
+				print event.value
+				
+		# CHECK TIMEOUT
+		if timeout <= 500: timeout += clock.tick()
+		else:
+			menu.update(None)
+			timeout = 0
+			pygame.event.clear(pygame.JOYBUTTONDOWN)
+			pygame.event.clear(pygame.JOYBUTTONUP)
 		
 	# GAME LOOP
 	while (game_active):
 	
 		# CREATE GAME OBJECT
-		if not game: game = Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
+		if not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
 	
 		# update display, pump event queue
 		pygame.display.flip()
@@ -108,6 +109,7 @@ def main():
 		
 		# check for ESCAPE key
 		for event in pygame.event.get():
+		
 			if event.type == pygame.KEYDOWN:
 			
 				# exit from pygame
@@ -119,26 +121,29 @@ def main():
 					game.state.set_final_jeopardy()
 					game.cur_round = 2
 					game.force_update_round()
-		
-		# if ESCAPE key, break before update
-		if not game_active: continue
+					
+							# check for button down
+			elif event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
+				
+				game_active = game.update(util.gamify_input(event.button, event.type == pygame.JOYBUTTONUP))
 		
 		# update game clock
-		game.tick_game_clock(clock.tick())
+		passed_time = clock.tick()
+		game.tick_game_clock(passed_time)
 		
-		# get input from buzzers
-		buzz_input = __get_input(buzz_dev, buzz_listener)
-			
-		# send input to game, update
-		print util.gamify_input(buzz_input)
-		game_active = game.update(util.gamify_input(buzz_input))
+		# CHECK TIMEOUT
+		if timeout <= 500: timeout += passed_time
+		else:
+			game.update(None)
+			timeout = 0
+			pygame.event.clear(pygame.JOYBUTTONDOWN)
+			pygame.event.clear(pygame.JOYBUTTONUP)
 	
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM
 	pygame.quit()
-	usb.util.dispose_resources(buzz_dev)
 	
 	# DELETE PULLED IMAGE FILES
-	util.del_temp_files()
+	util.dtf()
 	
 	print "PROGRAM HALT"
 
