@@ -431,7 +431,7 @@ class Game:
 		# blit winners
 		for i in range(len(winners)):
 			char_surf = winners[i].char_surface
-			self.SCREEN.blit(pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3)), (i*300, 150))
+			if winners[i].playing: self.SCREEN.blit(pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3)), (i*300, 150))
 		
 		self.SCREEN.blit(gen.text_surface("CONGRATULATIONS!!!"), (0,-200))
 		
