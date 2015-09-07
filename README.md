@@ -1,4 +1,4 @@
-# jeopardy_v2
+# JeoPyrdy
 multi-player Jeopardy game using PyGame:
 
 - PYTHON 2.7
