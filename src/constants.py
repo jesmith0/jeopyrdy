@@ -3,7 +3,7 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
-NUM_SPRITES = 5
+NUM_SPRITES = 7
 NUM_PLAYERS = 4
 ################
 
@@ -86,10 +86,9 @@ BET_STATE = 1
 BUZZED_STATE = 2
 SHOW_CLUE_STATE = 3
 SHOW_RESP_STATE = 4
-CHECK_STATE = 5
-FINAL_BET_STATE = 6
-FINAL_CHECK_STATE = 7
-END_STATE = 8
+FINAL_BET_STATE = 5
+FINAL_CHECK_STATE = 6
+END_STATE = 7
 ################
 
 # delay times

@@ -24,6 +24,11 @@ class Block:
 	def see_clue(self): self.clue.completed = True
 	
 	def complete_category(self): self.category.completed = True
+	
+	def if_resource(self):
+		
+		if self.resource: return True
+		else: return False
 
 class Category:
 

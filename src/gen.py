@@ -55,15 +55,17 @@ def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], fo
 
 def menu_item(option, value, active):
 
-	option_surf = HELVETICA[50].render(option, 1, WHITE)
+	font = HELVETICA[50]
+
+	option_surf = font.render(option, 1, WHITE)
 	
 	# all renders fonts underlined
-	if active: HELVETICA[50].set_underline(True)
+	if active: font.set_underline(True)
 	
-	value_surf = HELVETICA[50].render(value, 1, WHITE)
+	value_surf = font.render(value, 1, WHITE)
 	
 	# reset underline state
-	HELVETICA[50].set_underline(False)
+	font.set_underline(False)
 	
 	# create blank surface
 	main_surf = pygame.Surface((option_surf.get_width() + value_surf.get_width(), option_surf.get_height())).convert()
@@ -177,7 +179,11 @@ def correct_surface(correct = True):
 	
 	# create blank main surface
 	main_surf = pygame.Surface((300, 100)).convert()
-	main_surf.fill(BLUE)
+	
+	# fill and set alpha
+	main_surf.fill(DARK_BLUE)
+	main_surf.set_colorkey(DARK_BLUE)
+	main_surf.set_alpha(255)
 	
 	# compensate for extra length
 	if correct: dist = 75

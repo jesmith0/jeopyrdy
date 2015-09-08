@@ -26,6 +26,7 @@ class State:
 		self.all_bets_set = False
 		self.all_checks_set = False
 		self.fj_timeout = False
+		self.new_game = False
 	
 	def set_buzzed_player(self, p): self.buzzed_player = p
 	
@@ -37,11 +38,14 @@ class State:
 		
 	def update(self, input, cur_block = None):
 	
-		# RESET CLOCK
-		if self.init: self.game_clock = 0
-		
 		# RESET VARIABLES
 		self.check_round = False
+		active_down = False
+		buzzed_down = False
+		check_down = False
+	
+		# RESET CLOCK
+		if self.init: self.game_clock = 0
 		
 		# CHECK IF STATE TIMED OUT
 		timedout = self.__check_timeout()
@@ -120,27 +124,14 @@ class State:
 				return
 			
 			# DISPLAY RESPONSE SCREEN STATE LOGIC
-			elif self.if_state(SHOW_RESP_STATE) and (((( timedout and active_down ))) or ((( not timedout and buzzed_down ))) ):
+			elif self.if_state(SHOW_RESP_STATE) and ((not timedout and check_down) or (self.clue_timeout and active_down) or (self.buzzed_timeout and buzzed_down)):
 				
-				# timed out
-				if (self.buzzed_timeout or self.clue_timeout) and not self.final:
-				
+				if self.final: self.cur_state = FINAL_CHECK_STATE
+				else:
 					self.cur_state = MAIN_STATE
 					self.check_round = True
 					self.points_updated = False
-					
-				elif self.final: self.cur_state = FINAL_CHECK_STATE
-				else: self.cur_state = CHECK_STATE
 			
-				self.__end_state()
-				return
-			
-			# CHECK RESPONSE SCREEN STATE LOGIC
-			elif self.if_state(CHECK_STATE) and (check_down or self.buzzed_timeout):
-			
-				self.cur_state = MAIN_STATE
-				self.check_round = True
-				
 				self.__end_state()
 				return
 			
@@ -149,6 +140,8 @@ class State:
 			
 				self.cur_state = SHOW_CLUE_STATE
 				self.all_bets_set = False
+				
+				self.__end_state()
 				return
 			
 			# FINAL CHECK SCREEN STATE LOGIC
@@ -156,6 +149,15 @@ class State:
 			
 				self.cur_state = END_STATE
 				self.all_checks_set = False
+				
+				self.__end_state()
+				return
+			
+			# END SCREEN STATE LOGIC
+			elif self.if_state(END_STATE) and active_down:
+			
+				# initiates creation of new game object
+				self.new_game = True
 				return
 				
 		self.init = False
@@ -165,6 +167,7 @@ class State:
 		if self.fj_timeout: return True
 		elif self.if_state(SHOW_CLUE_STATE) and not self.final and (self.game_clock >= CLUE_TIMEOUT): return True
 		elif self.if_state(BUZZED_STATE) and (self.game_clock >= BUZZ_TIMEOUT): return True
+		elif self.buzzed_timeout or self.clue_timeout: return True
 		else: return False
 		
 	def __end_state(self):

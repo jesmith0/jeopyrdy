@@ -49,10 +49,12 @@ class Player:
 	def inc_bet(self, final = False):
 		
 		if self.cur_bet + 100 <= self.get_max_bet(final): self.cur_bet += 100
+		else: self.cur_bet = 0
 	
-	def dec_bet(self):
+	def dec_bet(self, final = False):
 		
 		if self.cur_bet - 100 >= 0: self.cur_bet -= 100
+		else: self.cur_bet = self.get_max_bet(final)
 		
 	def setup_bet(self, final = False):
 	
@@ -71,7 +73,7 @@ class Player:
 		self.cur_bet = 0
 		self.is_betting = False
 		self.bet_set = False
-	
+
 	# ADD TO PLAYER BET, UPDATE SURFACE
 	def add_to_bet(self):
 	
@@ -83,7 +85,7 @@ class Player:
 	
 		if (self.cur_bet - 100) >= 0: self.cur_bet -= 100
 		self.__update_char_surface(self.cur_bet)
-	
+
 	# NEGATES POINTS AND CALLS add_to_score
 	def sub_from_score(self, points):
 	
