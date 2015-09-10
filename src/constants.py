@@ -77,6 +77,7 @@ TIMEOUT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "timeout.ogg")
 BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
 DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
 FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
+APPLAUSE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "applause.ogg")
 ################
 
 # state constants

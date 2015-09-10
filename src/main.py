@@ -25,19 +25,22 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
 	pygame.display.set_caption("PYTHON Jeopardy")
 	pygame.display.set_icon(constants.ICON_IMAGE)
 	
+	# CREATE THEME MUSIC CHANNEL
+	theme_channel = pygame.mixer.Channel(0)
+	
 	# GAME LOOP
 	while (menu_active or game_active):
 	
 		# CREATE MENU/GAME OBJECTS
-		if menu_active and not menu: menu = m.Menu(screen)
+		if menu_active and not menu: menu = m.Menu(screen, theme_channel)
 		if game_active and not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
 	
 		# UPDATE DISPLAY
@@ -68,7 +71,7 @@ def main():
 		if game_active: game.tick_game_clock(passed_time)
 				
 		# CHECK TIMEOUT
-		if timeout <= 500: timeout += passed_time
+		if timeout <= 2000: timeout += passed_time
 		else:
 			if menu_active: menu.update(None)
 			elif game_active: game.update(None)

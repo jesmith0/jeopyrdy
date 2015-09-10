@@ -22,6 +22,7 @@ class Game:
 		self.cur_round = 0
 		self.cur_block = lib[0][0][0]
 		self.game_over = False
+		self.clue_read = False
 		
 		# PLAYER OBJECTS
 		self.players = util.init_player_objects(active_players)
@@ -47,7 +48,10 @@ class Game:
 		
 	def tick_game_clock(self, ms): self.state.game_clock += ms
 	
-	def return_to_menu(self): return self.state.new_game
+	def return_to_menu(self):
+	
+		if self.res_channel: self.res_channel.fadeout(1000)
+		return self.state.new_game
 		
 	def update(self, dirty_input = None):
 	
@@ -62,9 +66,13 @@ class Game:
 		if self.state.init:
 		
 			if self.state.if_state(MAIN_STATE): self.state.buzzed_player = self.state.active_player
-			if self.state.if_state(BET_STATE): self.players[self.state.active_player].set_bet_to_max()
-			if self.state.if_state(END_STATE): self.game_over = True
+			elif self.state.if_state(BET_STATE): self.players[self.state.active_player].set_bet_to_max()
+			elif self.state.if_state(SHOW_CLUE_STATE): self.clue_read = False
+			elif self.state.if_state(END_STATE):
+				self.game_over = True
+				if self.SFX_ON: self.res_channel = APPLAUSE_SOUND.play()
 	
+		# input logic
 		if input:
 		
 			active_up = int(input[self.state.active_player][1])
@@ -124,13 +132,14 @@ class Game:
 			elif self.state.if_state(SHOW_RESP_STATE): 
 			
 				# add points
-				if buzzed_green and not self.state.buzzed_timeout and not self.state.points_updated:
+				if (buzzed_green) and not (self.state.clue_timeout or self.state.buzzed_timeout or self.state.points_updated):
 			
 					self.__update_points()
 					self.state.active_player = self.state.buzzed_player
+					self.state.points_updated = True
 				
 				# subtract points
-				elif (buzzed_orange or self.state.buzzed_timeout) and not self.state.points_updated:
+				elif ((buzzed_orange and not self.state.clue_timeout) or (self.state.buzzed_timeout)) and not (self.state.points_updated):
 				
 					self.__update_points(False)
 					self.state.points_updated = True
@@ -153,7 +162,7 @@ class Game:
 					self.state.all_bets_set = True
 				
 					# play final jeopardy music
-					self.fj_channel = FINALJEP_SOUND.play()
+					if self.clue_read: self.fj_channel = FINALJEP_SOUND.play()
 					
 					# mute is sound effects off
 					if not self.SFX_ON: self.fj_channel.set_volume(0)
@@ -202,15 +211,17 @@ class Game:
 					if int(input[i][0]): player.bet_set = True
 					elif int(input[i][1]): player.inc_bet(True)
 					elif int(input[i][4]): player.dec_bet(True)
+					
+				print player.bet_set
 			
 			# indicate correct/incorrect
 			if self.state.if_state(FINAL_CHECK_STATE):
 			
-				if int(input[i][2]):
+				if int(input[i][2]) and not player.check_set:
 					player.sub_from_score(player.cur_bet)
 					player.check_set = True
 					
-				elif int(input[i][3]):
+				elif int(input[i][3]) and not player.check_set:
 					player.add_to_score(player.cur_bet)
 					player.check_set = True
 		
@@ -283,7 +294,7 @@ class Game:
 	
 		# generate category and clue surface
 		cat_surf = gen.text_surface((str(self.cur_block.category).upper()))
-		clue_surf = gen.text_surface(self.cur_block.clue)
+		clue_surf = gen.text_surface(self.cur_block.clue, BOARD_SIZE[0], BOARD_SIZE[1], 40, WHITE, "korinna")
 		
 		# determine character surface
 		if self.state.if_state(SHOW_CLUE_STATE): char_surf = ALEX_IMAGE
@@ -325,8 +336,9 @@ class Game:
 		incorrect_surf = gen.correct_surface(False)
 		
 		# generate character and text surfaces
+		cat_surf = gen.text_surface((str(self.cur_block.category).upper()))
 		char_surf = self.players[self.state.buzzed_player].char_surface
-		text_surf = gen.text_surface(self.cur_block.response)
+		text_surf = gen.text_surface(self.cur_block.response, BOARD_SIZE[0], BOARD_SIZE[1], 40, WHITE, "korinna")
 		
 		# scale character surface
 		scaled_image = pygame.transform.scale(char_surf, (char_surf.get_width()*3, char_surf.get_height()*3))
@@ -339,13 +351,14 @@ class Game:
 		self.SCREEN.blit(char_surf, (0, DISPLAY_RES[1]-char_surf.get_height()))
 		
 		# blit response
-		self.SCREEN.blit(gen.text_surface(self.cur_block.response), (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
+		self.SCREEN.blit(cat_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2, -200))
+		self.SCREEN.blit(text_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
 		
 		# blit markers
 		if not (self.state.buzzed_timeout or self.state.clue_timeout):
 		
-			self.SCREEN.blit(incorrect_surf, (main_center_loc[0]-100, main_center_loc[1]+100))
-			self.SCREEN.blit(correct_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+100))
+			self.SCREEN.blit(incorrect_surf, (main_center_loc[0]-100, main_center_loc[1]+150))
+			self.SCREEN.blit(correct_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+150))
 		
 		# read response
 		if self.state.init: self.__ttsx_speak(self.cur_block.response)
@@ -451,28 +464,28 @@ class Game:
 		
 	def __blit_all_characters(self, screen):
 	
-		char_surfs = []
+		active_players = []
 		
-		# generate character surfaces
-		for i in range(NUM_PLAYERS): char_surfs.append(self.players[i].char_surface)
+		# get list of active players
+		for player in self.players:
+			if player.playing:
+				active_players.append(player)
 		
-		# width interval dependant on number of players
-		width_interval = DISPLAY_RES[0]/NUM_PLAYERS
-		
-		blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
+		# width interval dependant on number of active players
+		width_interval = DISPLAY_RES[0]/len(active_players)
 		
 		# blit all characters
-		for i in range(NUM_PLAYERS):
+		for i in range(len(active_players)):
 		
 			# calculate location
-			blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
+			blit_loc = (((width_interval*(i)) + width_interval/2) - active_players[i].char_surface.get_width()/2, DISPLAY_RES[1]-active_players[i].char_surface.get_height())
 			
-			if not self.players[i].playing: util.blit_alpha(screen, char_surfs[i], blit_loc, 0)
+			# blit alpha depending on state
+			if (self.state.if_state(FINAL_BET_STATE) and active_players[i].bet_set) or (self.state.if_state(FINAL_CHECK_STATE) and active_players[i].check_set):
+				util.blit_alpha(screen, active_players[i].char_surface, blit_loc, 25)
 			
-			elif (self.state.if_state(FINAL_BET_STATE) and self.players[i].bet_set) or (self.state.if_state(FINAL_CHECK_STATE) and self.players[i].check_set):
-				util.blit_alpha(screen, char_surfs[i], blit_loc, 25)
-				
-			else: screen.blit(char_surfs[i], blit_loc)
+			# blit character surface
+			else: screen.blit(active_players[i].char_surface, blit_loc)
 	
 	# UPDATE CURSON BASED ON BUTTON DIRECTION
 	def __update_cursor_loc(self, direction):
@@ -560,6 +573,8 @@ class Game:
 			try: self.PYTTSX_ENGINE.say(str(words).decode('utf-8'))
 			except UnicodeDecodeError: self.PYTTSX_ENGINE.say('Unicode Decode Error')
 			except: self.PYTTSX_ENGINE.say('Unknown Error')
+		
+		self.clue_read = True
 			
 	def __init_final(self):
 	

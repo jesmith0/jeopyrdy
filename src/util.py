@@ -221,7 +221,7 @@ def init_player_objects(active_players):
 		
 		used_nums.append(num)
 		
-		players.append(player.Player(num, active_players[i]))
+		players.append(player.Player(i, num, active_players[i]))
 	
 	return players
 	

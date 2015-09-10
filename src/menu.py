@@ -4,9 +4,13 @@ from constants import *
 
 class Menu:
 
-	def __init__(self, screen):
+	def __init__(self, screen, theme_channel):
 	
 		self.screen = screen
+		self.theme_channel = theme_channel
+		
+		# play if channel inactive
+		if not theme_channel.get_busy(): theme_channel.play(THEME_SOUND, -1)
 		
 		self.sfx_state = True
 		self.speech_state = True
@@ -21,9 +25,6 @@ class Menu:
 		
 		# prevents players from interfering with each other
 		self.button_raised = [False, False, False, False]
-		
-		# mixer channel for theme music
-		self.music_channel = THEME_SOUND.play(-1)
 		
 		# generate surfaces
 		self.start_text_surface = gen.menu_item("> ", "START GAME", True)
@@ -53,7 +54,7 @@ class Menu:
 				if self.cursor_loc == 0:
 				
 					# if music off, release channel
-					if not self.music_state: self.music_channel.stop()
+					if not self.music_state: self.theme_channel.stop()
 					return [False, self.active_players, self.sfx_state, self.speech_state]
 				
 				elif self.cursor_loc == 1:
@@ -76,8 +77,8 @@ class Menu:
 				
 					# pause/unpause music accordingly
 					self.music_state = not self.music_state
-					if self.music_state: self.music_channel.set_volume(1)
-					else: self.music_channel.set_volume(0)
+					if self.music_state: self.theme_channel.set_volume(1)
+					else: self.theme_channel.set_volume(0)
 			
 			# P1 blue button
 			elif int(input[0][1]):

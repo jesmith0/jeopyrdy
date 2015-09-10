@@ -2,8 +2,9 @@ import pygame, constants, util, gen
 
 class Player:
 
-	def __init__(self, num, playing):
+	def __init__(self, order, num, playing):
 	
+		self.order = order
 		self.num = num
 		self.score = 0
 		self.playing = playing
@@ -45,16 +46,19 @@ class Player:
 	
 		self.cur_bet = self.get_max_bet(final)
 		self.bet_set = True
+		self.__update_char_surface(self.cur_bet)
 	
 	def inc_bet(self, final = False):
 		
 		if self.cur_bet + 100 <= self.get_max_bet(final): self.cur_bet += 100
 		else: self.cur_bet = 0
+		self.__update_char_surface(self.cur_bet)
 	
 	def dec_bet(self, final = False):
 		
 		if self.cur_bet - 100 >= 0: self.cur_bet -= 100
 		else: self.cur_bet = self.get_max_bet(final)
+		self.__update_char_surface(self.cur_bet)
 		
 	def setup_bet(self, final = False):
 	

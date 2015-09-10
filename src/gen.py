@@ -1,7 +1,7 @@
 import pygame
 from constants import *
 
-def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], font_size = 40, color = WHITE, font_fam = "helvetica", color_key = BLUE):
+def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], font_size = 40, color = WHITE, font_fam = "helvetica", color_key = BLUE, shadow = True):
 	
 	# encode data as string
 	text = str(text)
@@ -14,10 +14,18 @@ def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], fo
 	text_surf.set_colorkey(color_key)
 	text_surf.set_alpha(255)
 	
-	# set font face
-	if font_fam == "helvetica": font = HELVETICA
-	elif font_fam == "korinna": font = KORINNA
-	elif font_fam == "digital": font = DIGITAL
+	# set font face AND alculate line padding
+	if font_fam == "helvetica":
+		font = HELVETICA
+		padding = font_size
+		
+	elif font_fam == "korinna":
+		font = KORINNA
+		padding = font_size + 7
+		
+	elif font_fam == "digital":
+		font = DIGITAL
+		padding = font_size
 	
 	line_list = ['']
 	line_len = 0
@@ -48,7 +56,16 @@ def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], fo
 	# blit each line to a single surface
 	i = 0
 	for line in line_list:
-		text_surf.blit(font[font_size].render(line, 1, color), (max_width/2 - font[font_size].size(line)[0]/2, max_height/2-(len(line_list)*font_size)/2+i*font_size))
+	
+		# blit locations
+		x_loc = max_width/2 - font[font_size].size(line)[0]/2
+		y_loc = max_height/2-(len(line_list)*padding)/2+i*padding
+		
+		# render text
+		if shadow: text_surf.blit(font[font_size].render(line, 1, BLACK), (x_loc+2, y_loc+2))
+		text_surf.blit(font[font_size].render(line, 1, color), (x_loc, y_loc))
+		
+		# next line
 		i += 1
 			
 	return text_surf
@@ -58,11 +75,13 @@ def menu_item(option, value, active):
 	font = HELVETICA[50]
 
 	option_surf = font.render(option, 1, WHITE)
+	option_surf_bg = font.render(option, 1, BLACK)
 	
 	# all renders fonts underlined
 	if active: font.set_underline(True)
 	
 	value_surf = font.render(value, 1, WHITE)
+	value_surf_bg = font.render(value, 1, BLACK)
 	
 	# reset underline state
 	font.set_underline(False)
@@ -76,7 +95,9 @@ def menu_item(option, value, active):
 	main_surf.set_alpha(255)
 	
 	# blit surfaces
+	main_surf.blit(option_surf_bg, (2,2))
 	main_surf.blit(option_surf, (0,0))
+	main_surf.blit(value_surf_bg, (option_surf.get_width()+2, 2))
 	main_surf.blit(value_surf, (option_surf.get_width(), 0))
 	
 	return main_surf
