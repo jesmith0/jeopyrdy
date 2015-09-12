@@ -61,16 +61,6 @@ class Game:
 		# sets input value of all inactive players to 0
 		if dirty_input: input = self.__clean_input(dirty_input)
 		else: input = None
-		
-		# initialize states
-		if self.state.init:
-		
-			if self.state.if_state(MAIN_STATE): self.state.buzzed_player = self.state.active_player
-			elif self.state.if_state(BET_STATE): self.players[self.state.active_player].set_bet_to_max()
-			elif self.state.if_state(SHOW_CLUE_STATE): self.clue_read = False
-			elif self.state.if_state(END_STATE):
-				self.game_over = True
-				if self.SFX_ON: self.res_channel = APPLAUSE_SOUND.play()
 	
 		# input logic
 		if input:
@@ -190,6 +180,16 @@ class Game:
 		
 		# UPDATE ROUND
 		self.__update_round()
+		
+		# INITIAL STATE LOGIC (must happen before initial display)
+		if self.state.init:
+		
+			if self.state.if_state(MAIN_STATE): self.state.buzzed_player = self.state.active_player
+			elif self.state.if_state(BET_STATE): self.players[self.state.active_player].set_bet_to_max()
+			elif self.state.if_state(SHOW_CLUE_STATE): self.clue_read = False
+			elif self.state.if_state(END_STATE):
+				self.game_over = True
+				if self.SFX_ON: self.res_channel = APPLAUSE_SOUND.play()
 		
 		# DISPLAY GAME STATE
 		self.__display_state(self.state.cur_state)

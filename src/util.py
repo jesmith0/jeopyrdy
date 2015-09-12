@@ -194,6 +194,7 @@ def lib_setup():
 	
 	return [gen_lib_object(parsed_data), parsed_data[-1]]
 
+# delete temporary files
 def dtf():
 
 	if 'Windows' in platform.system(): path = 'temp\\'
@@ -205,6 +206,27 @@ def dtf():
 			os.remove(path + 'temp' + str(num) + '.jpg')
 			num += 1
 		except: num = -1
+
+# get buzzers
+def get_buzzers():
+
+	pygame.joystick.quit()
+	pygame.joystick.init()
+	
+	### POSSIBLE MEMORY LEAK ###
+
+	buzzer = None
+		
+	print pygame.joystick.get_count()
+
+	for i in range(0, pygame.joystick.get_count()):
+	
+		print pygame.joystick.Joystick(i).get_name()
+		if pygame.joystick.Joystick(i).get_name() == 'Buzz':
+			buzzer = pygame.joystick.Joystick(i)
+			buzzer.init()
+
+	return buzzer
 	
 # initialize player objects
 def init_player_objects(active_players):

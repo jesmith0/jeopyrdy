@@ -72,7 +72,7 @@ def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], fo
 
 def menu_item(option, value, active):
 
-	font = HELVETICA[50]
+	font = HELVETICA[30]
 
 	option_surf = font.render(option, 1, WHITE)
 	option_surf_bg = font.render(option, 1, BLACK)

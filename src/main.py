@@ -13,7 +13,7 @@ def main():
 
 	menu = None
 	game = None
-	buzzer = None
+	buzzers = None
 	
 	timeout = 0
 	
@@ -25,8 +25,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
@@ -36,11 +36,14 @@ def main():
 	# CREATE THEME MUSIC CHANNEL
 	theme_channel = pygame.mixer.Channel(0)
 	
+	# INITIAL CHECK FOR USB BUZZERS
+	buzzers = util.get_buzzers()
+	
 	# GAME LOOP
 	while (menu_active or game_active):
 	
 		# CREATE MENU/GAME OBJECTS
-		if menu_active and not menu: menu = m.Menu(screen, theme_channel)
+		if menu_active and not menu: menu = m.Menu(screen, theme_channel, buzzers)
 		if game_active and not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
 	
 		# UPDATE DISPLAY
@@ -48,15 +51,6 @@ def main():
 		
 		# RUN PYTTSX
 		pyttsx_engine.runAndWait()
-		
-		# SETUP USB BUZZERS
-		while(not buzzer):
-		
-			for i in range(0, pygame.joystick.get_count()):
-	
-				if pygame.joystick.Joystick(i).get_name() == 'Buzz':
-					buzzer = pygame.joystick.Joystick(i)
-					buzzer.init()
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -73,9 +67,21 @@ def main():
 		# CHECK TIMEOUT
 		if timeout <= 2000: timeout += passed_time
 		else:
-			if menu_active: menu.update(None)
+			
+			# recheck buzzers, update menu
+			if menu_active:
+				if buzzers: buzzers.quit()
+				buzzers = util.get_buzzers()
+				menu.update_buzzers(buzzers)
+				menu.update(None)
+			
+			# update game
 			elif game_active: game.update(None)
+			
+			# reset timeout
 			timeout = 0
+			
+			# clear events
 			pygame.event.clear(pygame.JOYBUTTONDOWN)
 			pygame.event.clear(pygame.JOYBUTTONUP)
 		
@@ -91,7 +97,7 @@ def main():
 					menu_active = False
 					
 				# jump to final jeopardy
-				elif event.key == pygame.K_k:
+				elif event.key == pygame.K_TAB:
 					game.state.set_final_jeopardy()
 					game.cur_round = 2
 					game.force_update_round()
@@ -124,6 +130,7 @@ def main():
 					speech_on = menu_ret[3]
 					
 					if menu.get_new_game(): game_set = False
+					
 					if not menu_active: game_active = True
 	
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM
