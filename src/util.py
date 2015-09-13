@@ -3,6 +3,7 @@ import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, l
 # GLOBAL VARIABLES
 image_count = 0
 
+"""
 def buzz_setup(buzz_dev):
 
 	# SETUP USB BUZZERS
@@ -25,7 +26,7 @@ def buzz_setup(buzz_dev):
 		print "BUZZERS (setup):\tOK"
 		
 	return buzz_ep[0]
-	
+
 def gamify_input(buzz_input):
 
 	if buzz_input == None: return None
@@ -46,27 +47,37 @@ def gamify_input(buzz_input):
 		b4 = [bin_input[1][0], bin_input[2][4], bin_input[2][5], bin_input[2][6], bin_input[2][7]]
 		
 		return [b1, b2, b3, b4]
-		
-def gamify_input(button, up, timeout = False):
+"""
 
-	if timeout: return None
-	else:
+#def gamify_input(button, up, timeout = False):
+def gamify_input(event):
 
-		map = [[0, 4, 3, 2, 1], [5, 9, 8, 7, 6], [10, 14, 13, 12, 11], [15, 19, 18, 17, 16]]
-		ret = []
-		arr = []
-		
-		for set in map:
-		
-			if button in set:
-				for value in set:
-					if button == value and up: arr.append(1)
-					else: arr.append(0)
-				ret.append(arr)
+	buzz_map = [[0, 4, 3, 2, 1], [5, 9, 8, 7, 6], [10, 14, 13, 12, 11], [15, 19, 18, 17, 16]]
+	key_map = [[50, 119, 100, 97, 115], [53, 116, 104, 102, 103], [56, 105, 108, 106, 107], [45, 91, 13, 59, 39]]
+	
+	ret = []
+	arr = []
+	
+	if event.type == pygame.KEYDOWN:
+		map = key_map
+		button = event.key
+	elif event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
+		map = buzz_map
+		button = event.button
+	
+	for set in map:
+			
+		if button in set:
+			for value in set:
+			
+				if button == value: arr.append(1)
+				else: arr.append(0)
+				
+			ret.append(arr)
 					
-			else: ret.append([0, 0, 0, 0, 0])
-		
-		return ret
+		else: ret.append([0, 0, 0, 0, 0])
+	
+	return ret
 
 def scrub_text(text):
 
@@ -74,10 +85,12 @@ def scrub_text(text):
 	new_text = text.replace('&amp;', '&')
 	new_text = new_text.replace('<br />', ' ')
 	new_text = new_text.replace('<br/>', ' ')
-	new_text = new_text.replace('<i>','')
+	new_text = new_text.replace('<i>', '')
 	new_text = new_text.replace('</i>','')
 	new_text = new_text.replace('<u>','')
 	new_text = new_text.replace('</u>','')
+	new_text = new_text.replace('<del>','')
+	new_text = new_text.replace('</del>','')
 	new_text = new_text.replace('</em>','')
 	new_text = new_text.replace('</a>','')
 	
@@ -216,12 +229,9 @@ def get_buzzers():
 	### POSSIBLE MEMORY LEAK ###
 
 	buzzer = None
-		
-	print pygame.joystick.get_count()
 
 	for i in range(0, pygame.joystick.get_count()):
 	
-		print pygame.joystick.Joystick(i).get_name()
 		if pygame.joystick.Joystick(i).get_name() == 'Buzz':
 			buzzer = pygame.joystick.Joystick(i)
 			buzzer.init()

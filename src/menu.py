@@ -72,7 +72,7 @@ class Menu:
 				
 					# if music off, release channel
 					if not self.music_state: self.theme_channel.stop()
-					return [False, self.active_players, self.sfx_state, self.speech_state]
+					return [False, self.active_players, self.sfx_state, self.speech_state, self.input_state]
 				
 				elif self.cursor_loc == 1:
 				
@@ -129,7 +129,7 @@ class Menu:
 		# only need to update when new input
 		self.__update_display()
 		
-		return [True, self.active_players, self.sfx_state, self.speech_state]
+		return [True, self.active_players, self.sfx_state, self.speech_state, self.input_state]
 	
 	# check if new game
 	def get_new_game(self):

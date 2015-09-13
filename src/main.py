@@ -25,8 +25,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
@@ -44,7 +44,7 @@ def main():
 	
 		# CREATE MENU/GAME OBJECTS
 		if menu_active and not menu: menu = m.Menu(screen, theme_channel, buzzers)
-		if game_active and not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on)
+		if game_active and not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on, input_type)
 	
 		# UPDATE DISPLAY
 		pygame.display.flip()
@@ -88,27 +88,26 @@ def main():
 		# GET EVENTS FROM QUEUE
 		for event in pygame.event.get():
 		
-			# check for escape
-			if event.type == pygame.KEYDOWN:
+			# exit from pygame
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 			
-				# exit from pygame
-				if event.key == pygame.K_ESCAPE:
-					game_active = False
-					menu_active = False
+				game_active = False
+				menu_active = False
 					
-				# jump to final jeopardy
-				elif event.key == pygame.K_TAB:
-					game.state.set_final_jeopardy()
-					game.cur_round = 2
-					game.force_update_round()
+			# jump to final jeopardy
+			elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+				
+				game.state.set_final_jeopardy()
+				game.cur_round = 2
+				game.force_update_round()
 			
 			# check for button down
-			elif event.type == pygame.JOYBUTTONDOWN or event.type == pygame.JOYBUTTONUP:
+			elif event.type == pygame.KEYDOWN or event.type == pygame.JOYBUTTONDOWN:
 				
 				if game_active:
 				
 					# update game object
-					game_active = game.update(util.gamify_input(event.button, event.type == pygame.JOYBUTTONUP))
+					game_active = game.update(util.gamify_input(event), event)
 					
 					# return to main menu
 					if game.return_to_menu():
@@ -122,12 +121,14 @@ def main():
 								
 				elif menu_active:
 				
-					menu_ret = menu.update(util.gamify_input(event.button, event.type == pygame.JOYBUTTONUP))
+					# update menu object
+					menu_ret = menu.update(util.gamify_input(event))
 					
 					menu_active = menu_ret[0]
 					active_players = menu_ret[1]
 					sfx_on = menu_ret[2]
 					speech_on = menu_ret[3]
+					input_type = menu_ret[4]
 					
 					if menu.get_new_game(): game_set = False
 					

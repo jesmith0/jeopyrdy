@@ -5,13 +5,14 @@ from constants import *
 
 class Game:
 
-	def __init__(self, screen, lib, active_players, pyttsx_engine, sfx_on, speech_on):
+	def __init__(self, screen, lib, active_players, pyttsx_engine, sfx_on, speech_on, input_type):
 	
 		# STATIC VARIABLES
 		self.SCREEN = screen
 		self.LIB = lib
 		self.SFX_ON = sfx_on
 		self.SPEECH_ON = speech_on
+		self.INPUT_TYPE = input_type
 		
 		# TTS OBJECT
 		self.PYTTSX_ENGINE = pyttsx_engine
@@ -53,7 +54,7 @@ class Game:
 		if self.res_channel: self.res_channel.fadeout(1000)
 		return self.state.new_game
 		
-	def update(self, dirty_input = None):
+	def update(self, dirty_input = None, event = None):
 	
 		# final jeopardy time out
 		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
@@ -63,7 +64,7 @@ class Game:
 		else: input = None
 	
 		# input logic
-		if input:
+		if event and ((self.INPUT_TYPE and event.type == pygame.JOYBUTTONDOWN) or (not self.INPUT_TYPE and event.type == pygame.KEYDOWN)):
 		
 			active_up = int(input[self.state.active_player][1])
 			active_right = int(input[self.state.active_player][2])
@@ -357,8 +358,8 @@ class Game:
 		# blit markers
 		if not (self.state.buzzed_timeout or self.state.clue_timeout):
 		
-			self.SCREEN.blit(incorrect_surf, (main_center_loc[0]-100, main_center_loc[1]+150))
-			self.SCREEN.blit(correct_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+150))
+			self.SCREEN.blit(correct_surf, (main_center_loc[0]-100, main_center_loc[1]+150))
+			self.SCREEN.blit(incorrect_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+150))
 		
 		# read response
 		if self.state.init: self.__ttsx_speak(self.cur_block.response)
@@ -431,8 +432,8 @@ class Game:
 		self.SCREEN.blit(gen.text_surface(self.cur_block.response), (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
 		
 		# blit markers
-		self.SCREEN.blit(incorrect_surf, (main_center_loc[0]-100, main_center_loc[1]+100))
-		self.SCREEN.blit(correct_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+100))
+		self.SCREEN.blit(correct_surf, (main_center_loc[0]-100, main_center_loc[1]+100))
+		self.SCREEN.blit(incorrect_surf, (main_center_loc[0]+incorrect_surf.get_width(), main_center_loc[1]+100))
 		
 		# blit all characters
 		self.__blit_all_characters(self.SCREEN)
