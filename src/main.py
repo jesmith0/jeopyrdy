@@ -25,8 +25,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
@@ -55,10 +55,15 @@ def main():
 		# GENERATE NEW GAME
 		if not game_set:
 		
+			game_set = True
+			
+			# setup clue library
 			setup_ret = util.lib_setup()
 			lib = setup_ret[0]
+			
+			# update menu
 			menu.set_game_date(setup_ret[1][0])
-			game_set = True
+			menu.update(None)
 			
 		# UPDATE GAME CLOCK
 		passed_time = clock.tick()
@@ -73,7 +78,6 @@ def main():
 				if buzzers: buzzers.quit()
 				buzzers = util.get_buzzers()
 				menu.update_buzzers(buzzers)
-				menu.update(None)
 			
 			# update game
 			elif game_active: game.update(None)

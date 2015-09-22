@@ -2,12 +2,14 @@ import pygame, constants, util, gen
 
 class Player:
 
-	def __init__(self, order, num, playing):
+	def __init__(self, order, num):
 	
 		self.order = order
 		self.num = num
 		self.score = 0
-		self.playing = playing
+		
+		if num == -1: self.playing = False
+		else: self.playing = True
 		
 		# state variables
 		self.active = False

@@ -3,53 +3,7 @@ import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, l
 # GLOBAL VARIABLES
 image_count = 0
 
-"""
-def buzz_setup(buzz_dev):
-
-	# SETUP USB BUZZERS
-	if buzz_dev is None:
-		raise ValueError('Device not found')
-
-	# may need to claim device from kernel
-	# see: http://www.orangecoat.com/how-to/read-and-decode-data-from-your-mouse-using-this-pyusb-hack
-		
-	buzz_dev.set_configuration()
-	
-	buzz_cfg = buzz_dev.get_active_configuration()
-	buzz_intf = buzz_cfg[(0,0)]
-	
-	buzz_ep = usb.util.find_descriptor(buzz_intf, buzz_intf[0])
-	
-	if buzz_ep is None:
-		raise ValueError('Endpoint not found')
-	else:
-		print "BUZZERS (setup):\tOK"
-		
-	return buzz_ep[0]
-
-def gamify_input(buzz_input):
-
-	if buzz_input == None: return None
-	else:
-	
-		bin_input = []
-		
-		# convert to binary and normalize
-		for b in buzz_input[2:]:
-			bin_input.append(bin(b)[2:])
-			while(len(bin_input[-1]) < 8):
-				bin_input[-1] = '0' + bin_input[-1]
-		
-		# hard coded from buzzer device
-		b1 = [bin_input[0][7], bin_input[0][3], bin_input[0][4], bin_input[0][5], bin_input[0][6]]
-		b2 = [bin_input[0][2], bin_input[1][6], bin_input[1][7], bin_input[0][0], bin_input[0][1]]
-		b3 = [bin_input[1][5], bin_input[1][1], bin_input[1][2], bin_input[1][3], bin_input[1][4]]
-		b4 = [bin_input[1][0], bin_input[2][4], bin_input[2][5], bin_input[2][6], bin_input[2][7]]
-		
-		return [b1, b2, b3, b4]
-"""
-
-#def gamify_input(button, up, timeout = False):
+# CONVERT PYGAME EVENT TO USABLE GAME INPUT
 def gamify_input(event):
 
 	buzz_map = [[0, 4, 3, 2, 1], [5, 9, 8, 7, 6], [10, 14, 13, 12, 11], [15, 19, 18, 17, 16]]
@@ -79,6 +33,7 @@ def gamify_input(event):
 	
 	return ret
 
+# REMOVE UNNECESSARY HTML
 def scrub_text(text):
 
 	# remove static tags
@@ -106,6 +61,7 @@ def scrub_text(text):
 		
 	return new_text
 
+# PULL MEDIA RESOURCES FROM J-ARCHIVE
 def get_resource(text, num):
 
 	if not text.find('<a') == -1:
@@ -122,7 +78,8 @@ def get_resource(text, num):
 			print "url non-responsive"
 		
 	return None
-	
+
+# PULL GAME DATA FROM J-ARCHIVE	
 def parse_jarchive():
 
 	cat = []
@@ -170,9 +127,8 @@ def parse_jarchive():
 	
 	# RETURN LIBRARY
 	return [cat, clue, resp, res, info]
-	
-	# TODO: ASSERT UNVISITED CLUES ARE CONSIDERED
 
+# GENERATE LIBRARY OBJECT FROM PULLED DATA
 def gen_lib_object(parsed):
 
 	cat = gamify_list(parsed[0])
@@ -193,7 +149,8 @@ def gen_lib_object(parsed):
 				lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]), library.Response(resp[i][j][k]), library.Resource(res[i][j][k])))
 		
 	return lib
-	
+
+# SETUP LIBRARY OBJECT
 def lib_setup():
 
 	# primitive solution to ensure no unseen clues
@@ -207,7 +164,7 @@ def lib_setup():
 	
 	return [gen_lib_object(parsed_data), parsed_data[-1]]
 
-# delete temporary files
+# DELETE TEMPORARY FILES (MEDIA RESOURCES)
 def dtf():
 
 	if 'Windows' in platform.system(): path = 'temp\\'
@@ -220,7 +177,7 @@ def dtf():
 			num += 1
 		except: num = -1
 
-# get buzzers
+# CREATE PYGAME JOYSTICK OBJECT OF USB BUZZERS
 def get_buzzers():
 
 	pygame.joystick.quit()
@@ -238,27 +195,48 @@ def get_buzzers():
 
 	return buzzer
 	
-# initialize player objects
+# INITIALiZE PLAYER OBJECTS (CHOOSE CHARACTERS)
 def init_player_objects(active_players):
 
 	players = []
 	used_nums = []
 	
+	print active_players
+	
+	# generate initial random number
 	num = random.randint(1, constants.NUM_SPRITES)
 	
-	for i in range(4):
+	# add chosen characters to used list
+	for ap_val in active_players: used_nums.append(ap_val)
 	
-		while num in used_nums:
-			num = random.randint(1, constants.NUM_SPRITES)
+	# determine characters
+	for ap_val in active_players:
+	
+		# player index
+		i = len(players)
+	
+		# player is inactive
+		if ap_val == -1: p = player.Player(i, -1)
 		
-		used_nums.append(num)
+		# choose random character
+		elif ap_val == 0:
+			
+			while num in used_nums: num = random.randint(1, constants.NUM_SPRITES)
+			
+			p = player.Player(i, num)
 		
-		players.append(player.Player(i, num, active_players[i]))
+			used_nums.append(num)
+		
+		# player chose character
+		else: p = player.Player(i, ap_val)
+		
+		# append player to list
+		players.append(p)
 	
 	return players
 	
 # GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME
-# assumes list is fully populated
+### MAY BE UNUSED ###
 def gamify_list(list):
 
 	gamified_list = [[],[]]
@@ -284,7 +262,7 @@ def gamify_list(list):
 	return gamified_list
 	
 ### CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
-# create surface with given opacity
+# CREATE SURFACE WITH GIVEN OPACITY
 def blit_alpha(target, source, location, opacity):
 
 	x = location[0]

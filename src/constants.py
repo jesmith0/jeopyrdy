@@ -80,6 +80,11 @@ FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
 APPLAUSE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "applause.ogg")
 ################
 
+# character names
+################
+CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne"]
+################
+
 # state constants
 ################
 MAIN_STATE = 0

@@ -1,4 +1,4 @@
-import pygame
+import pygame, pygame.gfxdraw
 from constants import *
 
 def text_surface(text, max_width = BOARD_SIZE[0], max_height = BOARD_SIZE[1], font_size = 40, color = WHITE, font_fam = "helvetica", color_key = BLUE, shadow = True):
@@ -121,20 +121,41 @@ def board_surface():
 	
 	return board_surf
 	
-def cursor_surface():
-
-	color = WHITE
-	
-	# cursor size based on board size
-	width = BOARD_SIZE[0]/6
-	height = BOARD_SIZE[1]/6
+def cursor_surface(width = BOARD_SIZE[0]/6, height = BOARD_SIZE[1]/6, color = WHITE, text = None):
 	
 	# create surface
 	cursor_surf = pygame.Surface((width+1, height+1))
 	
+	# fill surface 
+	cursor_surf.fill(BLUE)
+	
+	# draw player indicator
+	if text:
+	
+		text_surf = HELVETICA[20].render(text, True, BLUE)
+		text_size = text_surf.get_size()
+	
+		# calculate location for circle and text
+		if text == "P1":
+			center = [5, 5]
+			text_loc = [center[0]+3, center[1]+3]
+		elif text == "P2":
+			center = [width - 5, 5]
+			text_loc = [center[0]-3-text_size[0], center[1]+3]
+		elif text == "P3":
+			center = [5, height - 5]
+			text_loc = [center[0]+3, center[1]-3-text_size[1]]
+		elif text == "P4":
+			center = [width - 5, height - 5]
+			text_loc = [center[0]-3-text_size[0], center[1]-3-text_size[1]]
+	
+		# blit surfaces
+		pygame.gfxdraw.filled_circle(cursor_surf, center[0], center[1], 35, color)
+		pygame.gfxdraw.aacircle(cursor_surf, center[0], center[1], 35, color)
+		cursor_surf.blit(text_surf, (text_loc[0], text_loc[1]))
+		
 	# set colour key and alpha
-	cursor_surf.fill(COLOR_KEY)
-	cursor_surf.set_colorkey(COLOR_KEY)
+	cursor_surf.set_colorkey(BLUE)
 	cursor_surf.set_alpha(255)
 	
 	# horizontal lines
