@@ -1,7 +1,7 @@
 import pygame, os					# FOR GUI
+import pyttsx                       # FOR TEXT-TO-SPEECH
 import random, urllib, urllib2		# FOR GENERATING A CLUE LIBRARY
 import library, constants, util		# LOCAL LIBRARIES
-import pyttsx
 import menu as m					# Menu OBJECT CLASS
 import game as g					# Game OBJECT CLASS
 	
@@ -25,8 +25,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
