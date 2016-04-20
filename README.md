@@ -5,6 +5,8 @@ multi-player Jeopardy game using PyGame:
 - requires PS2 Buzz buzzers seen here: http://www.ebay.com/bhp/ps2-buzz-controllers
 - requires pygame package, available here: http://www.pygame.org/download.shtml
 - requires pyttsx package, available here: https://pypi.python.org/pypi/pyttsx/
+- requires pyusb package, available here: https://pypi.python.org/pypi/pyusb
+- (IF COMPILING ON WINDOWS) requires pywin32, available here: https://sourceforge.net/projects/pywin32/?source=typ_redirect
 
 to package as either a .exe (Windows) or .app (Mac OS X):
 
