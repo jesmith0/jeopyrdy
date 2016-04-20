@@ -128,8 +128,8 @@ class Menu:
 			
 		else:
 		
+			self.player_cursor_pos[i] = self.active_players[i]
 			self.active_players[i] = -1
-			self.player_cursor_pos[i] = 0
 			self.char_selected[i] = False
 	
 	def __check_menu(self):
@@ -261,14 +261,19 @@ class Menu:
 		offset = gen.menu_item("> INPUT: ", "KEYBOARD", False).get_width()/2
 		x_loc = DISPLAY_RES[0]/2 - offset - HELVETICA[30].size("")[0]
 		
+		scaled_alex = pygame.transform.scale(ALEX_IMAGE, (ALEX_IMAGE.get_width()*3, ALEX_IMAGE.get_height()*3))
+		
 		# blit surfaces
 		if self.charsel_state:
 		
+			
+			self.SCREEN.blit(pygame.transform.scale(MAINBG_IMAGE, DISPLAY_RES), (0, 0))
 			self.__blit_character_select(self.SCREEN)
-			#for i in range(NUM_SPRITES+1): self.SCREEN.blit(CHARACTERS_IMAGE, (180*i + 10, 50), (i*180, 0, 180, 120))
 		
 		else:
-			self.SCREEN.blit(PYGAME_IMAGE, (DISPLAY_RES[0]/2-PYGAME_IMAGE.get_width()/2, 5))
+			#self.SCREEN.blit(PYGAME_IMAGE, (DISPLAY_RES[0]/2-PYGAME_IMAGE.get_width()/2, 5))
+			util.blit_alpha(self.SCREEN, scaled_alex, (0, DISPLAY_RES[1]-scaled_alex.get_height()), 100)
+			util.blit_alpha(self.SCREEN, pygame.transform.flip(scaled_alex, True, True), (DISPLAY_RES[0]-scaled_alex.get_width(), DISPLAY_RES[1]-scaled_alex.get_height()), 100)
 			self.SCREEN.blit(LOGO_IMAGE, (DISPLAY_RES[0]/2-LOGO_IMAGE.get_width()/2, 70))
 			self.SCREEN.blit(self.gamedate_text_surface, (DISPLAY_RES[0]/2 - self.gamedate_text_surface.get_width()/2, 275))
 			self.SCREEN.blit(self.start_text_surface, (x_loc, 325))
@@ -329,18 +334,18 @@ class Menu:
 				char_surf.fill(BLUE)
 				char_surf.blit(CHARACTERS_IMAGE, (0, 0), (charnum*180, 0, 180, 120))
 				
-				blit_loc = (x_home + 200*j, 50 + 170*i)
+				blit_loc = (x_home + 200*j, 20 + 170*i)
 				
 				if (charnum in self.active_players) and charnum != 0: util.blit_alpha(screen, char_surf, blit_loc, 25)
 				else: screen.blit(char_surf, blit_loc)
 
-				screen.blit(self.border_surface, (x_home + 200*j, 50 + 170*i))
+				screen.blit(self.border_surface, (x_home + 200*j, 20 + 170*i))
 				
 				it = 0
 				for num in self.player_cursor_pos:
 				
 					pos = self.__get_pos_from_num(num)
-					if not self.char_selected[it]: screen.blit(self.cursor_surfaces[it], (x_home + 200*pos[0], 50 + 170*pos[1]))
+					if not self.char_selected[it]: screen.blit(self.cursor_surfaces[it], (x_home + 200*pos[0], 20 + 170*pos[1]))
 					it += 1
 	
 	def __blit_all_characters(self, screen):

@@ -3,7 +3,7 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
-NUM_SPRITES = 7
+NUM_SPRITES = 8
 NUM_PLAYERS = 4
 ################
 
@@ -28,7 +28,8 @@ WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="
 ################
 pygame.init()
 display_info = pygame.display.Info()
-DISPLAY_RES = (display_info.current_w, display_info.current_h)
+# DISPLAY_RES = (display_info.current_w, display_info.current_h)
+DISPLAY_RES = (1360, 768)
 BOARD_SIZE = (900, 600)
 CHAR_SIZE = (180, 200)
 ################

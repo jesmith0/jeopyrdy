@@ -1,5 +1,6 @@
-import pygame, random, pyttsx, time
+import pygame, random, time
 import util, state, gen
+import pyttsx
 
 from constants import *
 
@@ -51,13 +52,10 @@ class Game:
 	
 	def return_to_menu(self):
 	
-		if self.res_channel: self.res_channel.fadeout(1000)
+		if self.res_channel and self.state.new_game: self.res_channel.fadeout(1000)
 		return self.state.new_game
 		
 	def update(self, dirty_input = None, event = None):
-	
-		# final jeopardy time out
-		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
 		
 		# sets input value of all inactive players to 0
 		if dirty_input: input = self.__clean_input(dirty_input)
@@ -179,6 +177,11 @@ class Game:
 		# UPDATE GAME STATE
 		self.state.update(input, self.cur_block)
 		
+		### MOVED TO PREVENT OCCASIONAL PREMATURE END TO FINAL JEOPARDY ###
+		### POTENTIAL SOLUTION ###
+		# final jeopardy time out
+		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
+		
 		# UPDATE ROUND
 		self.__update_round()
 		
@@ -213,6 +216,7 @@ class Game:
 					elif int(input[i][1]): player.inc_bet(True)
 					elif int(input[i][4]): player.dec_bet(True)
 					
+				print "TEST"
 				print player.bet_set
 			
 			# indicate correct/incorrect
