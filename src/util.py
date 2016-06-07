@@ -1,4 +1,4 @@
-import pygame, constants, player, random, urllib, urllib2, usb.core, usb.util, library, os, platform
+import pygame, constants, player, random, urllib, urllib2, library, os, platform
 
 # GLOBAL VARIABLES
 image_count = 0
