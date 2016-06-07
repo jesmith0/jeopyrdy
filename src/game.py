@@ -201,7 +201,11 @@ class Game:
 	# CALLED IN EVENT LOOP TO END FINAL JEOPARDY
 	def end_final_jeopardy(self):
 
+		# end final jeopardy
 		self.state.fj_timeout = True
+
+		# remove end event
+		self.fj_channel.set_endevent(None)
 		
 	def __proc_final_input(self, input):
 	

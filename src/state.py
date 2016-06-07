@@ -100,6 +100,10 @@ class State:
 				if not timedout and not self.final: self.cur_state = BUZZED_STATE
 				else:
 					if self.SFX_ON: TIMEOUT_SOUND.play()
+					print "timedout: " + str(timedout)
+					print "self.final" + str(self.final)
+					print "buzzed_down" + str(buzzed_down)
+					print "DISPLAY CLUE"
 					time.sleep(1)
 					self.clue_timeout = True
 					
@@ -115,6 +119,7 @@ class State:
 				if timedout:
 				
 					if self.SFX_ON: TIMEOUT_SOUND.play()
+					print "BUZZED IN"
 					time.sleep(1)
 					self.buzzed_timeout = True
 				
