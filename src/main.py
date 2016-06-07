@@ -25,8 +25,8 @@ def main():
 	clock = pygame.time.Clock()
 	
 	# INITIALIZE SCREEN SURFACE
-	screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
-	#screen = pygame.display.set_mode(constants.DISPLAY_RES)
+	#screen = pygame.display.set_mode(constants.DISPLAY_RES, pygame.FULLSCREEN)
+	screen = pygame.display.set_mode(constants.DISPLAY_RES)
 	pygame.mouse.set_visible(False)
 	
 	# SET ICON AND CAPTION
@@ -50,7 +50,7 @@ def main():
 		pygame.display.flip()
 		
 		# RUN PYTTSX
-		pyttsx_engine.runAndWait()
+		# pyttsx_engine.runAndWait()
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -91,12 +91,28 @@ def main():
 		
 		# GET EVENTS FROM QUEUE
 		for event in pygame.event.get():
+
+			print event
+
+			# final jeopardy over
+			if event.type == constants.END_FJ_EVENT:
+
+				game.state.fj_timeout = True
 		
 			# exit from pygame
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 			
 				game_active = False
 				menu_active = False
+
+			elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
+
+				game_set = False
+				game_active = False
+				menu_active = True
+				game = None
+				menu = None
+				break
 					
 			# jump to final jeopardy
 			elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
@@ -119,9 +135,9 @@ def main():
 						game_set = False
 						game_active = False
 						menu_active = True
-						
 						game = None
 						menu = None
+						break
 								
 				elif menu_active:
 				

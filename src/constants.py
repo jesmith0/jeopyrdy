@@ -58,6 +58,11 @@ SFX_ON = True
 POINT_VALUES = [[100, 200, 300, 400, 500], [200, 400, 600, 800, 1000]]
 ################
 
+# user events
+################
+END_FJ_EVENT = pygame.USEREVENT + 1
+################
+
 # static image surfaces
 ################
 CHARACTERS_IMAGE = pygame.image.load(IMAGE_PATH + "chars.png")

@@ -151,7 +151,10 @@ class Game:
 					self.state.all_bets_set = True
 				
 					# play final jeopardy music
-					if self.clue_read: self.fj_channel = FINALJEP_SOUND.play()
+					if self.clue_read:
+
+						self.fj_channel = FINALJEP_SOUND.play()
+						self.fj_channel.set_endevent(END_FJ_EVENT)
 					
 					# mute is sound effects off
 					if not self.SFX_ON: self.fj_channel.set_volume(0)
@@ -177,11 +180,6 @@ class Game:
 		# UPDATE GAME STATE
 		self.state.update(input, self.cur_block)
 		
-		### MOVED TO PREVENT OCCASIONAL PREMATURE END TO FINAL JEOPARDY ###
-		### POTENTIAL SOLUTION ###
-		# final jeopardy time out
-		if self.fj_channel and not self.fj_channel.get_busy(): self.state.fj_timeout = True
-		
 		# UPDATE ROUND
 		self.__update_round()
 		
@@ -199,6 +197,11 @@ class Game:
 		self.__display_state(self.state.cur_state)
 		
 		return True
+
+	# CALLED IN EVENT LOOP TO END FINAL JEOPARDY
+	def end_final_jeopardy(self):
+
+		self.state.fj_timeout = True
 		
 	def __proc_final_input(self, input):
 	
