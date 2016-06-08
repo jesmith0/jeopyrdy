@@ -167,6 +167,14 @@ class State:
 	
 		if self.fj_timeout: return True
 		elif self.if_state(SHOW_CLUE_STATE) and not self.final and (self.game_clock >= CLUE_TIMEOUT): return True
+
+		# oh god im so ashamed
+		elif self.if_state(BUZZED_STATE):
+			if self.dailydouble:
+				if (self.game_clock >= CLUE_TIMEOUT): return True
+			else:
+				if (self.game_clock >= BUZZ_TIMEOUT): return True
+
 		elif self.if_state(BUZZED_STATE) and (self.game_clock >= BUZZ_TIMEOUT): return True
 		elif (self.buzzed_timeout or self.clue_timeout) and not self.final: return True
 		else: return False
