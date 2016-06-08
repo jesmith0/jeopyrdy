@@ -45,7 +45,7 @@ class State:
 		check_down = False
 	
 		# RESET CLOCK
-		if self.init: self.game_clock = 0
+		if self.init: self.reset_clock()
 		
 		# CHECK IF STATE TIMED OUT
 		timedout = self.__check_timeout()
@@ -100,10 +100,6 @@ class State:
 				if not timedout and not self.final: self.cur_state = BUZZED_STATE
 				else:
 					if self.SFX_ON: TIMEOUT_SOUND.play()
-					print "timedout: " + str(timedout)
-					print "self.final" + str(self.final)
-					print "buzzed_down" + str(buzzed_down)
-					print "DISPLAY CLUE"
 					time.sleep(1)
 					self.clue_timeout = True
 					
@@ -172,7 +168,7 @@ class State:
 		if self.fj_timeout: return True
 		elif self.if_state(SHOW_CLUE_STATE) and not self.final and (self.game_clock >= CLUE_TIMEOUT): return True
 		elif self.if_state(BUZZED_STATE) and (self.game_clock >= BUZZ_TIMEOUT): return True
-		elif self.buzzed_timeout or self.clue_timeout: return True
+		elif (self.buzzed_timeout or self.clue_timeout) and not self.final: return True
 		else: return False
 		
 	def __end_state(self):
@@ -183,6 +179,8 @@ class State:
 	
 		if self.cur_state == state: return True
 		else: return False
+
+	def reset_clock(self): self.game_clock = 0
 		
 	def __str__(self):
 	

@@ -168,6 +168,9 @@ class Game:
 					
 				# process input
 				self.__proc_final_input(input)
+
+				# force state gameclock to 0
+				self.state.reset_clock()
 				
 				# check if completed
 				completed = True
