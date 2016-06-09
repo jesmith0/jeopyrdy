@@ -50,7 +50,12 @@ def main():
 		pygame.display.flip()
 		
 		# RUN PYTTSX
-		# pyttsx_engine.runAndWait()
+		pyttsx_engine.runAndWait()
+
+		# CLEAR EVENTS IF SPEECH
+		if game and game.clear_events_flag:
+			pygame.event.clear()
+			game.clear_events_flag = False
 		
 		# GENERATE NEW GAME
 		if not game_set:

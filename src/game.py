@@ -14,6 +14,8 @@ class Game:
 		self.SFX_ON = sfx_on
 		self.SPEECH_ON = speech_on
 		self.INPUT_TYPE = input_type
+
+		self.clear_events_flag = False
 		
 		# TTS OBJECT
 		self.PYTTSX_ENGINE = pyttsx_engine
@@ -582,13 +584,14 @@ class Game:
 	
 	# read words using ttsx engine
 	def __ttsx_speak(self, words):
-	
+
 		if self.SPEECH_ON:
-		
+
 			try: self.PYTTSX_ENGINE.say(str(words).decode('utf-8'))
 			except UnicodeDecodeError: self.PYTTSX_ENGINE.say('Unicode Decode Error')
 			except: self.PYTTSX_ENGINE.say('Unknown Error')
 		
+		self.clear_events_flag = True
 		self.clue_read = True
 			
 	def __init_final(self):
