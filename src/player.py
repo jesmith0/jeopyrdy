@@ -4,8 +4,8 @@ class Player:
 
 	def __init__(self, order, num):
 	
-		self.order = order
-		self.num = num
+		self.order = order # order in player list
+		self.num = num	# unique id
 		self.score = 0
 		
 		if num == -1: self.playing = False

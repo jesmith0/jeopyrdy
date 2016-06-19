@@ -167,6 +167,9 @@ class Menu:
 						
 						# move to character select screen
 						self.charsel_state = True
+
+						# play choose your character sound
+						CHARSELECT_SOUND.play()
 						
 						# inactive players set to (-1, -1) cursor position
 						for i in range(len(self.char_selected)):

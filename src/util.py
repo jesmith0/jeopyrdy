@@ -1,4 +1,4 @@
-import pygame, constants, player, random, urllib, urllib2, library, os, platform
+import pygame, constants, player, random, urllib, urllib2, library, os, platform, imagesearch, os
 
 # GLOBAL VARIABLES
 image_count = 0
@@ -67,15 +67,31 @@ def get_resource(text, num):
 	if not text.find('<a') == -1:
 	
 		# attempt to pull image from j-archive.com
+
+		path = os.getcwd() + "\\" + constants.TEMP_PATH
+		print path
+
+		url = text[text.find("http://"):text.find('.jpg')+4]
+		print url
+		
 		try:
-			res = urllib.urlretrieve(text[text.find("http://"):text.find('.jpg')+4], constants.TEMP_PATH + "temp" + str(num) + ".jpg")
+			res = urllib.urlretrieve(url, path + "temp" + str(num) + ".jpg")
+			return res[0]
+		except:
+			return "404"
 			
-			if "text/html" in str(res[1]): return None
-			else: return res[0]
-			
+		if "text/html" in str(res[1]):
+			print "none"
+			return None
+		else:
+			print "res"
+			return res[0]
+		
+		'''	
 		except:
 			# google image search
 			print "url non-responsive"
+		'''
 		
 	return None
 
@@ -124,6 +140,14 @@ def parse_jarchive():
 		
 	for i in range(len(resp)):
 		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
+
+		# should be image but not available on j-archive
+		if (res[i] == "404"):
+
+			try:
+				res[i] = imagesearch.search(resp[i])
+				print res[i]
+			except: res[i] = None
 	
 	# RETURN LIBRARY
 	return [cat, clue, resp, res, info]

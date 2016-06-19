@@ -578,9 +578,16 @@ class Game:
 		if add: player.add_to_score(points)
 		else:
 			player.sub_from_score(points)
-			if self.SFX_ON: self.players[self.state.buzzed_player].play_wrong()
+
+			if self.SFX_ON:
+				self.players[self.state.buzzed_player].play_wrong() # play "wrong" catch phrase
+				if (self.players[self.state.buzzed_player].num == 11): self.__play_woopsie() # play woopsie animation if jeremy
 			
 		player.reset_bet()
+
+	# play woopsie animation for jeremy character
+	def __play_woopsie(self):
+		print "play"
 	
 	# read words using ttsx engine
 	def __ttsx_speak(self, words):

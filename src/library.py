@@ -84,7 +84,13 @@ class Resource:
 		
 	def __generate_surf(self, res):
 	
-		if res: return pygame.image.load(res)
+		if res:
+
+			try: return pygame.image.load(res)
+			except:
+				print "image load failed for: "
+				print res
+				return None
 		
 		else: return None
 		

@@ -3,7 +3,7 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
-NUM_SPRITES = 8
+NUM_SPRITES = 11
 NUM_PLAYERS = 4
 ################
 
@@ -84,6 +84,7 @@ BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
 DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
 FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
 APPLAUSE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "applause.ogg")
+CHARSELECT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "charselect.ogg")
 ################
 
 # character names
