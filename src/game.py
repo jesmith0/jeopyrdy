@@ -364,7 +364,7 @@ class Game:
 	
 		# generate category and clue surface
 		cat_surf = gen.text_surface((str(self.cur_block.category).upper()))
-		clue_surf = gen.text_surface(self.cur_block.clue, BOARD_SIZE[0], BOARD_SIZE[1], 40, WHITE, "korinna")
+		clue_surf = gen.text_surface(self.cur_block.clue, BOARD_SIZE[0]+100, BOARD_SIZE[1]+100, 32, WHITE, "korinna")
 		
 		# determine character surface
 		if self.state.if_state(SHOW_CLUE_STATE): char_surf = ALEX_IMAGE
@@ -391,12 +391,23 @@ class Game:
 			
 			### DETERMINE IF MOVIE, MUSIC, OR IMAGE ###
 			res_surface = self.cur_block.resource.surface
-			res_surface = pygame.transform.scale(res_surface, (res_surface.get_width()/2, res_surface.get_height()/2))
-			self.SCREEN.blit(res_surface, (DISPLAY_RES[0]/2 - res_surface.get_width()/2, 400))
+
+			# resize
+			scale_height = 200.0
+			height = res_surface.get_height()
+			scale_width = res_surface.get_width() * (scale_height/height)
+			scaled_surf = pygame.Surface((scale_width, scale_height))
+
+			#res_surface = pygame.transform.smoothscale(res_surface, (scale_width, scale_height), scaled_surf)
+			res_surface = pygame.transform.scale(res_surface, (int(scale_width), int(scale_height)))
+
+			#res_surface = pygame.transform.scale(res_surface, (res_surface.get_width()/2, res_surface.get_height()/2))
+			#self.SCREEN.blit(scaled_surf, (DISPLAY_RES[0]/2 - res_surface.get_width()/2, 400))
+			self.SCREEN.blit(res_surface, ((DISPLAY_RES[0]/2)-(res_surface.get_width()/2), DISPLAY_RES[1]-res_surface.get_height()-20))
 		
 		# blit category and clue to screen
 		self.SCREEN.blit(cat_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2, -200))
-		self.SCREEN.blit(clue_surf, (DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2,0))
+		self.SCREEN.blit(clue_surf, ((DISPLAY_RES[0]/2 - BOARD_SIZE[0]/2)-50,0))
 		
 		# read response
 		if self.state.init and (self.state.if_state(SHOW_CLUE_STATE) or self.state.dailydouble): self.__ttsx_speak(self.cur_block.clue)
