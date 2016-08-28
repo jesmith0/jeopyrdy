@@ -200,11 +200,30 @@ def char_surface(num):
 	char_surf.fill(DARK_BLUE)
 	char_surf.set_colorkey(DARK_BLUE)
 	char_surf.set_alpha(255)
-	
-	# blit slice from character image
-	char_surf.blit(CHARACTERS_IMAGE, (0, 0), (num*180, 0, 180, 200))
+
+	if num == -1:
+		# blit toasty
+		char_surf.blit(TOASTY_IMAGE, (0, 0), (0, 0, 180, 200))
+	else:	
+		# blit slice from character image
+		char_surf.blit(CHARACTERS_IMAGE, (0, 0), (num*180, 0, 180, 200))
 	
 	return char_surf
+
+def skip_surface(order):
+
+	surf = pygame.Surface((50,50)).convert()
+	text_surf = text_surface("P" + str(order), 40, 40)
+
+	surf.fill(DARK_BLUE)
+	surf.set_colorkey(DARK_BLUE)
+	surf.set_alpha(255)
+
+	pygame.draw.circle(surf, YELLOW, (25, 25), 25, 0)
+	surf.blit(text_surf, (5, 5))
+
+	return surf
+
 	
 def correct_surface(correct = True):
 

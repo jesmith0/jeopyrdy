@@ -14,6 +14,7 @@ class Game:
 		self.SFX_ON = sfx_on
 		self.SPEECH_ON = speech_on
 		self.INPUT_TYPE = input_type
+		self.NUM_ACTIVE = len(active_players)
 
 		self.clear_events_flag = False
 		
@@ -27,6 +28,17 @@ class Game:
 		self.cur_block = lib[0][0][0]
 		self.game_over = False
 		self.clue_read = False
+		self.play_toasty = False
+
+		self.currently_playing = None
+
+		# TOASTY VARIABLES
+		self.toasty_x = 0
+		self.toasty_step = 0
+		self.toasty = gen.char_surface(-1)
+
+		# SKIP VARIABLES
+		self.skip_arr = [False, False, False, False]
 		
 		# PLAYER OBJECTS
 		self.players = util.init_player_objects(active_players)
@@ -38,7 +50,7 @@ class Game:
 		self.value_surfs = gen.value_surfaces()			# returns a list of two lists of value surfaces
 		
 		# SOUND CHANNELS
-		self.fj_channel = None
+		self.fj_channel = pygame.mixer.Channel(2)
 		self.res_channel = None
 		
 		# SET DAILY DOUBLES
@@ -56,12 +68,30 @@ class Game:
 	
 		if self.res_channel and self.state.new_game: self.res_channel.fadeout(1000)
 		return self.state.new_game
+
+	def __check_skip(self, input):
+
+		i = 0
+		for buzzer in input:
+			if buzzer[4]: self.skip_arr[i] = not self.skip_arr[i]
+			i += 1
+
+		i = 0
+		for player in self.players:
+			if player.playing: i += 1
+
+		if sum(self.skip_arr) == i:
+			return True
+		else: return False
 		
 	def update(self, dirty_input = None, event = None):
 		
 		# sets input value of all inactive players to 0
 		if dirty_input: input = self.__clean_input(dirty_input)
 		else: input = None
+
+		# players vote to skip
+		skip = False
 	
 		# input logic
 		if event and ((self.INPUT_TYPE and event.type == pygame.JOYBUTTONDOWN) or (not self.INPUT_TYPE and event.type == pygame.KEYDOWN)):
@@ -101,11 +131,18 @@ class Game:
 			
 				# (IF NOT A DAILY DOUBLE) ANY PLAYER MAY BUZZ IN
 				if self.state.dailydouble: buzzed_players.append(self.state.active_player)
+				# NO PLAYERS BUZZED IN
 				else:
+
+					# CHECK FOR BUZZ IN
 					i = 0
 					for buzzer in input[:NUM_PLAYERS]:
 						if int(buzzer[0]) == 1: buzzed_players.append(i)
 						i += 1
+					# CHECK FOR SKIP
+					skip = self.__check_skip(input)
+
+					if skip: print "SKIP!"
 				
 				# only if someone has buzzed in
 				if len(buzzed_players) > 0:
@@ -120,7 +157,10 @@ class Game:
 			elif self.state.if_state(BUZZED_STATE): pass
 			
 			# DISPLAY RESPONSE SCREEN GAME LOGIC
-			elif self.state.if_state(SHOW_RESP_STATE): 
+			elif self.state.if_state(SHOW_RESP_STATE):
+
+				# reset skip functionality
+				self.skip_arr = [False, False, False, False]
 			
 				# add points
 				if (buzzed_green) and not (self.state.clue_timeout or self.state.buzzed_timeout or self.state.points_updated):
@@ -155,8 +195,9 @@ class Game:
 					# play final jeopardy music
 					if self.clue_read:
 
-						self.fj_channel = FINALJEP_SOUND.play()
 						self.fj_channel.set_endevent(END_FJ_EVENT)
+						self.fj_channel.play(FINALJEP_SOUND)
+						print "set event"
 					
 					# mute is sound effects off
 					if not self.SFX_ON: self.fj_channel.set_volume(0)
@@ -183,7 +224,7 @@ class Game:
 				if completed: self.state.all_checks_set = True
 				
 		# UPDATE GAME STATE
-		self.state.update(input, self.cur_block)
+		self.state.update(input, self.cur_block, skip)
 		
 		# UPDATE ROUND
 		self.__update_round()
@@ -197,11 +238,23 @@ class Game:
 			elif self.state.if_state(END_STATE):
 				self.game_over = True
 				if self.SFX_ON: self.res_channel = APPLAUSE_SOUND.play()
+
+		# stop playback of wrong phrase if leaving main board
+		if self.state.if_state(BET_STATE) or self.state.if_state(SHOW_CLUE_STATE) or self.state.if_state(FINAL_BET_STATE):
+
+			if self.currently_playing:
+				self.currently_playing.stop()
+				print "TEST"
 		
 		# DISPLAY GAME STATE
-		self.__display_state(self.state.cur_state)
+		self.__update_display()
 		
 		return True
+
+	# UPDATES THE DISPLAY
+	def __update_display(self):
+
+		self.__display_state(self.state.cur_state)
 
 	# CALLED IN EVENT LOOP TO END FINAL JEOPARDY
 	def end_final_jeopardy(self):
@@ -326,6 +379,11 @@ class Game:
 		# blit character and text to screen
 		util.blit_alpha(self.SCREEN, scaled_image, (0, DISPLAY_RES[1]-scaled_image.get_height()), 100)
 		self.SCREEN.blit(char_surf, (0, DISPLAY_RES[1]-char_surf.get_height()))
+
+		i = 0
+		for skip in self.skip_arr:
+			if skip: self.SCREEN.blit(self.players[i].skip_surface, ((i*100)+50, 50))
+			i += 1
 		
 		# get resource and display/play
 		### if self.cur_block.if_resource(): ### ACTUAL CHECK WHEN MOVIES AND MUSIC
@@ -398,6 +456,9 @@ class Game:
 		
 		# blit all characters
 		self.__blit_all_characters(self.SCREEN)
+
+		# toasty animation
+		if self.play_toasty: self.__run_toasty()
 		
 	def __display_bet(self):
 	
@@ -580,14 +641,42 @@ class Game:
 			player.sub_from_score(points)
 
 			if self.SFX_ON:
-				self.players[self.state.buzzed_player].play_wrong() # play "wrong" catch phrase
-				if (self.players[self.state.buzzed_player].num == 11): self.__play_woopsie() # play woopsie animation if jeremy
+				#self.currently_playing = self.players[self.state.buzzed_player].get_wrong()
+				#self.currently_playing.play()
+				self.currently_playing = self.players[self.state.buzzed_player].play_wrong() # play "wrong" catch phrase
+				if (self.players[self.state.buzzed_player].num == 11): self.__set_toasty()
+					
+					
 			
 		player.reset_bet()
 
-	# play woopsie animation for jeremy character
-	def __play_woopsie(self):
-		print "play"
+	# play toasty animation for jeremy character
+	def __run_toasty(self):
+
+		self.toasty_step += 1
+
+		#offset = self.toasty_step
+		
+		#if self.toasty_step > 200: offset = 200 - (self.toasty_step % 200)
+
+		#toasty_y = DISPLAY_RES[1] - offset
+
+		self.SCREEN.blit(self.toasty, (self.toasty_x*180, DISPLAY_RES[1]-200))
+
+		if self.toasty_step >= 10: self.__reset_toasty()
+
+	def __set_toasty(self):
+
+		self.toasty_x = random.randrange(0, int(DISPLAY_RES[0]/180)) # sprite width is 180
+		self.toasty_step = 0
+		self.play_toasty = True # play toasty animation if jeremy
+
+	def __reset_toasty(self):
+
+		self.toasty_x = 0
+		self.toasty_step = 0
+		self.play_toasty = False
+		self.__update_display()
 	
 	# read words using ttsx engine
 	def __ttsx_speak(self, words):

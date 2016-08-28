@@ -5,6 +5,7 @@ import platform, pygame
 MAX_GAME = 4985
 NUM_SPRITES = 11
 NUM_PLAYERS = 4
+FORCE_GAME = None
 ################
 
 # addressing
@@ -73,6 +74,7 @@ FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
 PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.png")
 ICON_IMAGE = pygame.image.load(IMAGE_PATH + "icon.png")
+TOASTY_IMAGE = pygame.image.load(IMAGE_PATH + "toasty.png")
 ################
 
 # sound objects
@@ -87,9 +89,14 @@ APPLAUSE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "applause.ogg")
 CHARSELECT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "charselect.ogg")
 ################
 
+NAMES_SOUND_ARR = []
+for i in range(NUM_SPRITES+1):
+	print i
+	NAMES_SOUND_ARR.append(pygame.mixer.Sound(MUSIC_PATH + "name" + str(i) + ".ogg"))
+
 # character names
 ################
-CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne"]
+CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne", "Keanu Reeves", "Kathy Griffin", "Bjork", "Jesus"]
 ################
 
 # state constants

@@ -26,6 +26,8 @@ class Player:
 		# initialize surfaces
 		self.blank_char_surface = gen.char_surface(num)
 		self.char_surface = gen.char_surface(num)
+		self.skip_surface = gen.skip_surface(order + 1)
+		print self.skip_surface
 		
 		# load sound clips
 		self.correct_sound = None
@@ -33,8 +35,12 @@ class Player:
 		
 		# blit initial score
 		self.add_to_score(0)
+
+	def get_wrong(self): return self.incorrect_sound
 		
-	def play_wrong(self): self.incorrect_sound.play()
+	def play_wrong(self): return self.incorrect_sound.play()
+
+	def stop_wrong(self): self.incorrect_sound.stop()
 	
 	def play_right(self): self.correct_sound.play()
 		

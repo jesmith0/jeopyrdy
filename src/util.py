@@ -1,4 +1,4 @@
-import pygame, constants, player, random, urllib, urllib2, library, os, platform, imagesearch, os
+import pygame, constants, player, random, urllib, urllib2, library, os, platform, sys, requests, re, wikipedia
 
 # GLOBAL VARIABLES
 image_count = 0
@@ -61,39 +61,87 @@ def scrub_text(text):
 		
 	return new_text
 
+def get_img_from_wiki(query, num):
+
+	path = os.getcwd() + "\\" + constants.TEMP_PATH
+
+	try:
+		print query
+		page = wikipedia.page(query)
+
+	except wikipedia.exceptions.DisambiguationError as err:
+
+		try:
+			# use first suggestion
+			page = wikipedia.page((str(err).split('\n'))[1])
+		except:
+			print "some other error"
+			return None
+
+	matchs = []
+	jpg = re.compile('.*\.jpg')
+
+	for image in page.images:
+		
+		result = jpg.match(image)
+		if result: matchs.append(image)
+
+	if matchs:
+		try:
+			res = urllib.urlretrieve(matchs[0], path + "wiki" + str(num) + ".jpg")
+			print res[0]
+			return res[0]
+		except:
+			print "### JEOPARDY ERROR ###"
+			print query
+			print matchs
+			print "COULD NOT RETRIEVE IMAGE FROM WIKIPEDIA"
+
+	else: return None
+
 # PULL MEDIA RESOURCES FROM J-ARCHIVE
 def get_resource(text, num):
 
-	if not text.find('<a') == -1:
-	
-		# attempt to pull image from j-archive.com
+	path = os.getcwd() + "\\" + constants.TEMP_PATH
+	url = ''
 
-		path = os.getcwd() + "\\" + constants.TEMP_PATH
-		print path
+	img_prog = re.compile('.*<a href=".*\.jpg".*')
+	result = img_prog.match(text)
 
-		url = text[text.find("http://"):text.find('.jpg')+4]
-		print url
-		
+	# check if IMAGE resource tag is present (all j-archive images are jpg)
+	if result:
+
+		# pull url from clue
+		split = text.split('>')
+		for item in split:
+			trim = re.search('http:\/\/.*\.jpg', item)
+			try:
+				url = trim.group(0)
+				break
+			except: continue
+
+		# url is now ready to be retrieved
+
 		try:
-			res = urllib.urlretrieve(url, path + "temp" + str(num) + ".jpg")
+			# retrieve url data
+			res = urllib.urlretrieve(url, path + "ja" + str(num) + ".jpg")
+
+			# ensure content type is image, else resource is not available
+			if 'Content-Type: text/html' in str(res[1]): return '404'
+
+			print res[0]
+
+			# return image
 			return res[0]
+
 		except:
+			print "ERROR OPENING " + str(url)
+		
+			# indicate that resource tag present, but no resource obtained
 			return "404"
-			
-		if "text/html" in str(res[1]):
-			print "none"
-			return None
-		else:
-			print "res"
-			return res[0]
-		
-		'''	
-		except:
-			# google image search
-			print "url non-responsive"
-		'''
-		
-	return None
+
+	# if no resource tag present
+	else: return None
 
 # PULL GAME DATA FROM J-ARCHIVE	
 def parse_jarchive():
@@ -107,7 +155,8 @@ def parse_jarchive():
 	res_count = 0
 
 	# RANDOMLY GENERATE USEABLE GAME NUMBER
-	game_num = str(random.randint(1, constants.MAX_GAME))
+	if constants.FORCE_GAME: game_num = str(constants.FORCE_GAME)
+	else: game_num = str(random.randint(1, constants.MAX_GAME))
 	
 	print game_num
 	
@@ -124,30 +173,32 @@ def parse_jarchive():
 	for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
 		if 'class="correct_response">' in line: resp.append(line)
 	
-	# FORMAT LIBRARY INFO
+	### FORMAT LIBRARY INFO ###
+
+	# POPULATE CLUES TO LIBRARY
 	for i in range(len(clue)):
 	
 		unscrubed_clue = clue[i][clue[i].find('class="clue_text">')+18:clue[i].find('</td>')]
-		
-		hold_res = get_resource(unscrubed_clue, res_count)
-		if hold_res: res_count += 1
-		
-		res[i] = hold_res
 		clue[i] = scrub_text(unscrubed_clue)
-		
+
+		# attempt to grab resource from j-archive
+		res[i] = get_resource(unscrubed_clue, res_count)
+
+		# increment resource count if one is supposed to exist
+		if res[i]: res_count += 1
+	
+	# POPULATE CATEGORIES TO LIBRARY
 	for i in range(len(cat)):
+
 		cat[i] = scrub_text(cat[i][cat[i].find('class="category_name">')+22:cat[i].find('</td>')])
-		
+	
+	# POPULATE RESPONSE TO LIBRARY
 	for i in range(len(resp)):
+		
 		resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">')+25:resp[i].find('</em>')])
 
-		# should be image but not available on j-archive
-		if (res[i] == "404"):
-
-			try:
-				res[i] = imagesearch.search(resp[i])
-				print res[i]
-			except: res[i] = None
+		# grab image from Wikipedia if 404ed
+		if res[i] == '404': res[i] = get_img_from_wiki(resp[i], i)
 	
 	# RETURN LIBRARY
 	return [cat, clue, resp, res, info]

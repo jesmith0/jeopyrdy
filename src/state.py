@@ -36,7 +36,7 @@ class State:
 		self.final = True
 		self.cur_state = FINAL_BET_STATE
 		
-	def update(self, input, cur_block = None):
+	def update(self, input, cur_block = None, skip = False):
 	
 		# RESET VARIABLES
 		self.check_round = False
@@ -48,7 +48,7 @@ class State:
 		if self.init: self.reset_clock()
 		
 		# CHECK IF STATE TIMED OUT
-		timedout = self.__check_timeout()
+		timedout = self.__check_timeout(skip)
 		
 		# ONLY UPDATE ON NON-NULL INPUT
 		if input or timedout:
@@ -163,10 +163,12 @@ class State:
 				
 		self.init = False
 	
-	def __check_timeout(self):
+	def __check_timeout(self, skip = False):
 	
-		if self.fj_timeout: return True
-		elif self.if_state(SHOW_CLUE_STATE) and not self.final and (self.game_clock >= CLUE_TIMEOUT): return True
+		if self.fj_timeout:
+			print "fj timeout"
+			return True
+		elif self.if_state(SHOW_CLUE_STATE) and not self.final and ((self.game_clock >= CLUE_TIMEOUT) or skip): return True
 
 		# oh god im so ashamed
 		elif self.if_state(BUZZED_STATE):

@@ -56,6 +56,10 @@ def main():
 		if game and game.clear_events_flag:
 			pygame.event.clear()
 			game.clear_events_flag = False
+
+		if game and game.play_toasty:
+			game.update()
+			print "test"
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -129,7 +133,7 @@ def main():
 			# check for button down
 			elif event.type == pygame.KEYDOWN or event.type == pygame.JOYBUTTONDOWN:
 				
-				if game_active:
+				if game and game_active:
 				
 					# update game object
 					game_active = game.update(util.gamify_input(event), event)
@@ -162,7 +166,7 @@ def main():
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM
 	pygame.quit()
 	
-	# DELETE PULLED IMAGE FILES
+	# DELETE TEMP FILES
 	util.dtf()
 	
 	print "PROGRAM HALT"

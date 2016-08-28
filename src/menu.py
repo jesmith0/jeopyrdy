@@ -122,6 +122,8 @@ class Menu:
 				# set character selected
 				self.active_players[i] = self.player_cursor_pos[i]
 				self.char_selected[i] = True
+
+				NAMES_SOUND_ARR[self.player_cursor_pos[i]].play()
 				
 				# deactive character select cursor
 				self.player_cursor_pos[i] = -1
