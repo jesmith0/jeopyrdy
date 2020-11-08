@@ -1,5 +1,6 @@
 # JeoPyrdy
 multi-player celebrity Jeopardy simulator using [PyGame](https://www.pygame.org/) with support for [PS2 "BUZZ!" controllers](https://www.ebay.com/p/1234467844)
+
 ![](res/images/chars.png)
 
 ## Install (Requires Python 2.7)
@@ -20,3 +21,7 @@ python scripts/2exe.py
 pip install py2app
 python scripts/2app.py
 ```
+
+### This project is dedicated to the memory of Alex Trebek
+![](res/images/alex.png)  
+[Donate to National Pancreatic Cancer Foundation!](https://www.npcf.us/donate-volunteer/ways-to-donate/donate/)
