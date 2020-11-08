@@ -5,7 +5,7 @@ import platform, pygame
 MAX_GAME = 6861
 NUM_SPRITES = 11
 NUM_PLAYERS = 4
-FORCE_GAME = 6861
+FORCE_GAME = None
 ################
 
 # addressing
