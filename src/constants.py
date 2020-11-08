@@ -3,9 +3,8 @@ import platform, pygame
 # game information
 ################
 MAX_GAME = 4985
-NUM_SPRITES = 11
+NUM_SPRITES = 7
 NUM_PLAYERS = 4
-FORCE_GAME = 1219
 ################
 
 # addressing
@@ -29,8 +28,7 @@ WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="
 ################
 pygame.init()
 display_info = pygame.display.Info()
-# DISPLAY_RES = (display_info.current_w, display_info.current_h)
-DISPLAY_RES = (1360, 768)
+DISPLAY_RES = (display_info.current_w, display_info.current_h)
 BOARD_SIZE = (900, 600)
 CHAR_SIZE = (180, 200)
 ################
@@ -59,11 +57,6 @@ SFX_ON = True
 POINT_VALUES = [[100, 200, 300, 400, 500], [200, 400, 600, 800, 1000]]
 ################
 
-# user events
-################
-END_FJ_EVENT = pygame.USEREVENT + 1
-################
-
 # static image surfaces
 ################
 CHARACTERS_IMAGE = pygame.image.load(IMAGE_PATH + "chars.png")
@@ -74,7 +67,6 @@ FJBG_IMAGE = pygame.image.load(IMAGE_PATH + "fjbackground.png")
 MAINBG_IMAGE = pygame.image.load(IMAGE_PATH + "mainbackground.jpg")
 PYGAME_IMAGE = pygame.image.load(IMAGE_PATH + "pygame.png")
 ICON_IMAGE = pygame.image.load(IMAGE_PATH + "icon.png")
-TOASTY_IMAGE = pygame.image.load(IMAGE_PATH + "toasty.png")
 ################
 
 # sound objects
@@ -86,17 +78,11 @@ BOARDFILL_SOUND = pygame.mixer.Sound(MUSIC_PATH + "boardfill.ogg")
 DAILYDOUBLE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "dailydouble.ogg")
 FINALJEP_SOUND = pygame.mixer.Sound(MUSIC_PATH + "finaljeopardy.ogg")
 APPLAUSE_SOUND = pygame.mixer.Sound(MUSIC_PATH + "applause.ogg")
-CHARSELECT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "charselect.ogg")
 ################
-
-NAMES_SOUND_ARR = []
-for i in range(NUM_SPRITES+1):
-	print i
-	NAMES_SOUND_ARR.append(pygame.mixer.Sound(MUSIC_PATH + "name" + str(i) + ".ogg"))
 
 # character names
 ################
-CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne", "Keanu Reeves", "Kathy Griffin", "Bjork", "Jesus"]
+CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne"]
 ################
 
 # state constants

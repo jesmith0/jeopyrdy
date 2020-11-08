@@ -1,7 +1,7 @@
 import pygame, os					# FOR GUI
-import pyttsx                       # FOR TEXT-TO-SPEECH
 import random, urllib, urllib2		# FOR GENERATING A CLUE LIBRARY
 import library, constants, util		# LOCAL LIBRARIES
+#import pyttsx
 import menu as m					# Menu OBJECT CLASS
 import game as g					# Game OBJECT CLASS
 	
@@ -19,7 +19,7 @@ def main():
 	
 	# INITIALIZE ALL IMPORTED PYGAME/PYTTSX MODULES
 	pygame.init()
-	pyttsx_engine = pyttsx.init()
+	pyttsx_engine = None # pyttsx.init()
 	
 	# CREATE CLOCK OBJECT
 	clock = pygame.time.Clock()
@@ -50,16 +50,7 @@ def main():
 		pygame.display.flip()
 		
 		# RUN PYTTSX
-		pyttsx_engine.runAndWait()
-
-		# CLEAR EVENTS IF SPEECH
-		if game and game.clear_events_flag:
-			pygame.event.clear()
-			game.clear_events_flag = False
-
-		if game and game.play_toasty:
-			game.update()
-			print "test"
+		# pyttsx_engine.runAndWait()
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -100,28 +91,12 @@ def main():
 		
 		# GET EVENTS FROM QUEUE
 		for event in pygame.event.get():
-
-			print event
-
-			# final jeopardy over
-			if event.type == constants.END_FJ_EVENT:
-
-				game.state.fj_timeout = True
 		
 			# exit from pygame
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 			
 				game_active = False
 				menu_active = False
-
-			elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
-
-				game_set = False
-				game_active = False
-				menu_active = True
-				game = None
-				menu = None
-				break
 					
 			# jump to final jeopardy
 			elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
@@ -133,7 +108,7 @@ def main():
 			# check for button down
 			elif event.type == pygame.KEYDOWN or event.type == pygame.JOYBUTTONDOWN:
 				
-				if game and game_active:
+				if game_active:
 				
 					# update game object
 					game_active = game.update(util.gamify_input(event), event)
@@ -144,9 +119,9 @@ def main():
 						game_set = False
 						game_active = False
 						menu_active = True
+						
 						game = None
 						menu = None
-						break
 								
 				elif menu_active:
 				
@@ -166,7 +141,7 @@ def main():
 	# RETURN USB DEVICE AND PYGAME RESOURCES TO SYSTEM
 	pygame.quit()
 	
-	# DELETE TEMP FILES
+	# DELETE PULLED IMAGE FILES
 	util.dtf()
 	
 	print "PROGRAM HALT"

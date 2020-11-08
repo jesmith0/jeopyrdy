@@ -4,8 +4,8 @@ class Player:
 
 	def __init__(self, order, num):
 	
-		self.order = order # order in player list
-		self.num = num	# unique id
+		self.order = order
+		self.num = num
 		self.score = 0
 		
 		if num == -1: self.playing = False
@@ -26,21 +26,15 @@ class Player:
 		# initialize surfaces
 		self.blank_char_surface = gen.char_surface(num)
 		self.char_surface = gen.char_surface(num)
-		self.skip_surface = gen.skip_surface(order + 1)
-		print self.skip_surface
 		
 		# load sound clips
 		self.correct_sound = None
-		self.incorrect_sound = pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg") if num > 0 else None
+		self.incorrect_sound = pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg")
 		
 		# blit initial score
 		self.add_to_score(0)
-
-	def get_wrong(self): return self.incorrect_sound
 		
-	def play_wrong(self): return self.incorrect_sound.play()
-
-	def stop_wrong(self): self.incorrect_sound.stop()
+	def play_wrong(self): self.incorrect_sound.play()
 	
 	def play_right(self): self.correct_sound.play()
 		

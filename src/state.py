@@ -36,7 +36,7 @@ class State:
 		self.final = True
 		self.cur_state = FINAL_BET_STATE
 		
-	def update(self, input, cur_block = None, skip = False):
+	def update(self, input, cur_block = None):
 	
 		# RESET VARIABLES
 		self.check_round = False
@@ -45,10 +45,10 @@ class State:
 		check_down = False
 	
 		# RESET CLOCK
-		if self.init: self.reset_clock()
+		if self.init: self.game_clock = 0
 		
 		# CHECK IF STATE TIMED OUT
-		timedout = self.__check_timeout(skip)
+		timedout = self.__check_timeout()
 		
 		# ONLY UPDATE ON NON-NULL INPUT
 		if input or timedout:
@@ -115,7 +115,6 @@ class State:
 				if timedout:
 				
 					if self.SFX_ON: TIMEOUT_SOUND.play()
-					print "BUZZED IN"
 					time.sleep(1)
 					self.buzzed_timeout = True
 				
@@ -163,22 +162,12 @@ class State:
 				
 		self.init = False
 	
-	def __check_timeout(self, skip = False):
+	def __check_timeout(self):
 	
-		if self.fj_timeout:
-			print "fj timeout"
-			return True
-		elif self.if_state(SHOW_CLUE_STATE) and not self.final and ((self.game_clock >= CLUE_TIMEOUT) or skip): return True
-
-		# oh god im so ashamed
-		elif self.if_state(BUZZED_STATE):
-			if self.dailydouble:
-				if (self.game_clock >= CLUE_TIMEOUT): return True
-			else:
-				if (self.game_clock >= BUZZ_TIMEOUT): return True
-
+		if self.fj_timeout: return True
+		elif self.if_state(SHOW_CLUE_STATE) and not self.final and (self.game_clock >= CLUE_TIMEOUT): return True
 		elif self.if_state(BUZZED_STATE) and (self.game_clock >= BUZZ_TIMEOUT): return True
-		elif (self.buzzed_timeout or self.clue_timeout) and not self.final: return True
+		elif self.buzzed_timeout or self.clue_timeout: return True
 		else: return False
 		
 	def __end_state(self):
@@ -189,8 +178,6 @@ class State:
 	
 		if self.cur_state == state: return True
 		else: return False
-
-	def reset_clock(self): self.game_clock = 0
 		
 	def __str__(self):
 	
