@@ -2,10 +2,10 @@ import platform, pygame
 
 # game information
 ################
-MAX_GAME = 4985
+MAX_GAME = 6861
 NUM_SPRITES = 11
 NUM_PLAYERS = 4
-FORCE_GAME = 1219
+FORCE_GAME = 6861
 ################
 
 # addressing
