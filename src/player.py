@@ -31,7 +31,7 @@ class Player:
 		
 		# load sound clips
 		self.correct_sound = None
-		self.incorrect_sound = pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg")
+		self.incorrect_sound = pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg") if num > 0 else None
 		
 		# blit initial score
 		self.add_to_score(0)
