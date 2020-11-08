@@ -1,18 +1,14 @@
 # JeoPyrdy
-multi-player Jeopardy game using PyGame:
+multi-player celebrity Jeopardy simulator using [PyGame](https://www.pygame.org/) with support for [PS2 "BUZZ!" controllers](https://www.ebay.com/p/1234467844)
 
-- PYTHON 2.7
-- requires PS2 Buzz buzzers seen here: http://www.ebay.com/bhp/ps2-buzz-controllers
-- requires pygame package, available here: http://www.pygame.org/download.shtml
-- requires pyttsx package, available here: https://pypi.python.org/pypi/pyttsx/
-- requires pyusb package, available here: https://pypi.python.org/pypi/pyusb
-- (IF COMPILING ON WINDOWS) requires pywin32, available here: https://sourceforge.net/projects/pywin32/?source=typ_redirect
+## Install (Requires Python 2.7)
+```pip install -r requirements.txt```
 
-to package as either a .exe (Windows) or .app (Mac OS X):
+## Run
+```cd src && python main.py```
 
-- requires py2exe package, available here: http://www.py2exe.org/
-- requires py2app package, available here: https://pypi.python.org/pypi/py2app/
-
-to play using .exe:
-
-- copy "/src/fonts", "/src/images", and "/src/music" into "/dist"
+## Build
+##### For Windows
+```pip install pywin32 py2exe```
+##### For Mac
+```pip install py2app```
