@@ -1,8 +1,7 @@
-import pygame, os					# FOR GUI
-import random, urllib, urllib2		# FOR GENERATING A CLUE LIBRARY
-import library, constants, util		# LOCAL LIBRARIES
-import menu as m					# Menu OBJECT CLASS
-import game as g					# Game OBJECT CLASS
+import pygame			# FOR GUI
+import constants, util	# LOCAL LIBRARIES
+import menu as m		# Menu OBJECT CLASS
+import game as g		# Game OBJECT CLASS
 	
 def main():
 

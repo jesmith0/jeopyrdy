@@ -368,8 +368,6 @@ class Menu:
 		# width interval dependant on number of players
 		width_interval = DISPLAY_RES[0]/4
 		
-		blit_loc = (((width_interval*(i)) + width_interval/2) - char_surfs[i].get_width()/2, DISPLAY_RES[1]-char_surfs[i].get_height())
-		
 		# blit all characters
 		for i in range(4):
 		

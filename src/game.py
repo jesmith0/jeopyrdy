@@ -1,4 +1,4 @@
-import pygame, random, time, os
+import pygame, random, os
 import util, state, gen
 
 from constants import *

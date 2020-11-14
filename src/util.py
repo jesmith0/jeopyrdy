@@ -1,4 +1,4 @@
-import pygame, constants, player, random, urllib, urllib2, library, os, platform, sys, requests, re, wikipedia
+import pygame, constants, player, random, urllib, urllib2, library, os, platform, re, wikipedia
 
 # GLOBAL VARIABLES
 image_count = 0

@@ -1,4 +1,4 @@
-import util, constants, pygame, gen
+import constants, pygame, gen
 
 class Block:
 
