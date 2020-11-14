@@ -1,12 +1,11 @@
-import pygame, random, time
+import pygame, random, time, os
 import util, state, gen
-import pyttsx
 
 from constants import *
 
 class Game:
 
-	def __init__(self, screen, lib, active_players, pyttsx_engine, sfx_on, speech_on, input_type):
+	def __init__(self, screen, lib, active_players, sfx_on, speech_on, input_type):
 	
 		# STATIC VARIABLES
 		self.SCREEN = screen
@@ -17,9 +16,6 @@ class Game:
 		self.NUM_ACTIVE = len(active_players)
 
 		self.clear_events_flag = False
-		
-		# TTS OBJECT
-		self.PYTTSX_ENGINE = pyttsx_engine
 		
 		# STATE VARIABLES
 		self.state = state.State(sfx_on)
@@ -694,9 +690,8 @@ class Game:
 
 		if self.SPEECH_ON:
 
-			try: self.PYTTSX_ENGINE.say(str(words).decode('utf-8'))
-			except UnicodeDecodeError: self.PYTTSX_ENGINE.say('Unicode Decode Error')
-			except: self.PYTTSX_ENGINE.say('Unknown Error')
+			try: os.system('say ' + str(words).decode('ascii') + ' &')
+			except: os.system('say unknown error')
 		
 		self.clear_events_flag = True
 		self.clue_read = True

@@ -1,5 +1,4 @@
 import pygame, os					# FOR GUI
-import pyttsx                       # FOR TEXT-TO-SPEECH
 import random, urllib, urllib2		# FOR GENERATING A CLUE LIBRARY
 import library, constants, util		# LOCAL LIBRARIES
 import menu as m					# Menu OBJECT CLASS
@@ -17,9 +16,8 @@ def main():
 	
 	timeout = 0
 	
-	# INITIALIZE ALL IMPORTED PYGAME/PYTTSX MODULES
+	# INITIALIZE ALL IMPORTED PYGAME MODULES
 	pygame.init()
-	pyttsx_engine = pyttsx.init()
 	
 	# CREATE CLOCK OBJECT
 	clock = pygame.time.Clock()
@@ -44,13 +42,10 @@ def main():
 	
 		# CREATE MENU/GAME OBJECTS
 		if menu_active and not menu: menu = m.Menu(screen, theme_channel, buzzers)
-		if game_active and not game: game = g.Game(screen, lib, active_players, pyttsx_engine, sfx_on, speech_on, input_type)
+		if game_active and not game: game = g.Game(screen, lib, active_players, sfx_on, speech_on, input_type)
 	
 		# UPDATE DISPLAY
 		pygame.display.flip()
-		
-		# RUN PYTTSX
-		pyttsx_engine.runAndWait()
 
 		# CLEAR EVENTS IF SPEECH
 		if game and game.clear_events_flag:
