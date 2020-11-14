@@ -1,4 +1,4 @@
-# JeoPyrdy
+# THIS IS JEOPYRDY
 multi-player celebrity Jeopardy simulator using [PyGame](https://www.pygame.org/) with support for [PS2 "BUZZ!" controllers](https://www.ebay.com/p/1234467844)
 
 ![](res/images/chars.png)
