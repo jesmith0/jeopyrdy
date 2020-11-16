@@ -16,10 +16,10 @@ if "Windows" in platform.system():
 	MUSIC_PATH = "..\\res\\music\\"
 	TEMP_PATH = "..\\res\\temp\\"
 else:
-	IMAGE_PATH = "../res/images/"
-	FONT_PATH = "../res/fonts/"
-	MUSIC_PATH = "../res/music/"
-	TEMP_PATH = "../res/temp/"
+	IMAGE_PATH = "../Resources/res/images/"
+	FONT_PATH = "../Resources/res/fonts/"
+	MUSIC_PATH = "../Resources/res/music/"
+	TEMP_PATH = "../Resources/res/temp/"
 	
 WEB_ADDR_CLUE = "http://www.j-archive.com/showgame.php?game_id="
 WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="
