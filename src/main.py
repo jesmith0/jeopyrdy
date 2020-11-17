@@ -53,7 +53,6 @@ def main():
 
 		if game and game.play_toasty:
 			game.update()
-			print "test"
 		
 		# GENERATE NEW GAME
 		if not game_set:
@@ -94,8 +93,6 @@ def main():
 		
 		# GET EVENTS FROM QUEUE
 		for event in pygame.event.get():
-
-			print event
 
 			# final jeopardy over
 			if event.type == constants.END_FJ_EVENT:
@@ -162,7 +159,5 @@ def main():
 	
 	# DELETE TEMP FILES
 	util.dtf()
-	
-	print "PROGRAM HALT"
 
 if __name__ == "__main__": main()

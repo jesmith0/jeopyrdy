@@ -91,7 +91,6 @@ CHARSELECT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "charselect.ogg")
 
 NAMES_SOUND_ARR = []
 for i in range(NUM_SPRITES+1):
-	print i
 	NAMES_SOUND_ARR.append(pygame.mixer.Sound(MUSIC_PATH + "name" + str(i) + ".ogg"))
 
 # character names

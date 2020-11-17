@@ -27,7 +27,6 @@ class Player:
 		self.blank_char_surface = gen.char_surface(num)
 		self.char_surface = gen.char_surface(num)
 		self.skip_surface = gen.skip_surface(order + 1)
-		print self.skip_surface
 		
 		# load sound clips
 		self.correct_sound = None
