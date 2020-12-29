@@ -10,7 +10,8 @@ from setuptools import setup
 APP = ['./src/main.py']
 DATA_FILES = [('', ['./res'])]
 OPTIONS = {
-    'argv_emulation': True
+    'argv_emulation': True,
+    'packages': ['pygame']
 }
 
 setup(
