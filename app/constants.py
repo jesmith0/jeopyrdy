@@ -1,4 +1,5 @@
-import platform, pygame
+import platform
+import pygame
 
 # game information
 ################

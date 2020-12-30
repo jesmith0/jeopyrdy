@@ -1,4 +1,14 @@
-import pygame, constants, player, random, urllib, urllib2, library, os, platform, re, wikipedia
+import constants
+import library
+import os
+import platform
+import player
+import pygame
+import random
+import re
+import urllib
+import urllib2
+import wikipedia
 
 # GLOBAL VARIABLES
 image_count = 0
@@ -53,11 +63,11 @@ def scrub_text(text):
     new_text = new_text.replace('</a>', '')
 
     # remove emphasis tag
-    if (not new_text.find('<em') == -1):
+    if not new_text.find('<em') == -1:
         new_text = new_text[:new_text.find('<em')] + new_text[new_text.find('>') + 2:]
 
     # for each hyperlink tag
-    while (not new_text.find('<a') == -1):
+    while not new_text.find('<a') == -1:
         # removes every hyperlink reference tag from text
         new_text = new_text[:new_text.find('<a')] + new_text[new_text.find('">') + 2:]
 
@@ -244,7 +254,7 @@ def lib_setup():
     # primitive solution to ensure no unseen clues
     parse_valid = False
 
-    while (not parse_valid):
+    while not parse_valid:
         parsed_data = parse_jarchive()
         if len(parsed_data[1]) == 61: parse_valid = True
 
@@ -274,7 +284,7 @@ def get_buzzers():
     pygame.joystick.quit()
     pygame.joystick.init()
 
-    ### POSSIBLE MEMORY LEAK ###
+    # TODO: Check for possible memory leak
 
     buzzer = None
 
@@ -287,7 +297,7 @@ def get_buzzers():
     return buzzer
 
 
-# INITIALiZE PLAYER OBJECTS (CHOOSE CHARACTERS)
+# INITIALIZE PLAYER OBJECTS (CHOOSE CHARACTERS)
 def init_player_objects(active_players):
     players = []
     used_nums = []
@@ -328,7 +338,7 @@ def init_player_objects(active_players):
 
 
 # GAMIFY LIST FOR SIMPLER USE THROUGHOUT GAME
-### MAY BE UNUSED ###
+# TODO: Check if unused
 def gamify_list(list):
     gamified_list = [[], []]
     split_list = [list[:len(list) / 2], list[len(list) / 2:-1]]
@@ -355,7 +365,7 @@ def gamify_list(list):
     return gamified_list
 
 
-### CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
+# CODE FROM: http://www.nerdparadise.com/tech/python/pygame/blitopacity/ ###
 # CREATE SURFACE WITH GIVEN OPACITY
 def blit_alpha(target, source, location, opacity):
     x = location[0]
