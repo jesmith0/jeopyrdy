@@ -11,15 +11,15 @@ FORCE_GAME = None
 # addressing
 ################
 if "Windows" in platform.system():
-	IMAGE_PATH = "..\\res\\images\\"
-	FONT_PATH = "..\\res\\fonts\\"
-	MUSIC_PATH = "..\\res\\music\\"
-	TEMP_PATH = "..\\res\\temp\\"
+	IMAGE_PATH = "res\\images\\"
+	FONT_PATH = "res\\fonts\\"
+	MUSIC_PATH = "res\\music\\"
+	TEMP_PATH = "res\\temp\\"
 else:
-	IMAGE_PATH = "../res/images/"
-	FONT_PATH = "../res/fonts/"
-	MUSIC_PATH = "../res/music/"
-	TEMP_PATH = "../res/temp/"
+	IMAGE_PATH = "./res/images/"
+	FONT_PATH = "./res/fonts/"
+	MUSIC_PATH = "./res/music/"
+	TEMP_PATH = "./res/temp/"
 	
 WEB_ADDR_CLUE = "http://www.j-archive.com/showgame.php?game_id="
 WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="

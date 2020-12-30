@@ -71,36 +71,36 @@ def get_img_from_wiki(query, num):
         print query
         page = wikipedia.page(query)
 
-    except wikipedia.exceptions.DisambiguationError as err:
+    except wikipedia.exceptions.DisambiguationError as de:
 
         try:
             # use first suggestion
-            page = wikipedia.page((str(err).split('\n'))[1])
+            page = wikipedia.page((str(de).split('\n'))[1])
         except:
-            print err.message
+            print "some other error"
             return None
 
-    except wikipedia.exceptions.PageError as err:
-        print err.message
+    except wikipedia.exceptions.PageError as pe:
+        print pe.message
         return None
 
-    matchs = []
+    matches = []
     jpg = re.compile('.*\.jpg')
 
     for image in page.images:
 
         result = jpg.match(image)
-        if result: matchs.append(image)
+        if result: matches.append(image)
 
-    if matchs:
+    if matches:
         try:
-            res = urllib.urlretrieve(matchs[0], path + "wiki" + str(num) + ".jpg")
+            res = urllib.urlretrieve(matches[0], path + "wiki" + str(num) + ".jpg")
             print res[0]
             return res[0]
         except:
             print "### JEOPARDY ERROR ###"
             print query
-            print matchs
+            print matches
             print "COULD NOT RETRIEVE IMAGE FROM WIKIPEDIA"
 
     else:
