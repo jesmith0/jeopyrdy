@@ -29,7 +29,6 @@ class State:
 		self.new_game = False
 	
 	def set_buzzed_player(self, p):
-		print "BUZZED PLAYER SENT"
 		self.buzzed_player = p
 	
 	def set_final_jeopardy(self):

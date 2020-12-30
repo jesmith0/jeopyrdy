@@ -141,17 +141,14 @@ class Game:
 					# CHECK FOR BUZZ IN
 					if not speaking:
 						i = 0
-						print buzzed_players
 						for buzzer in input[:NUM_PLAYERS]:
 							if int(buzzer[0]) == 1: buzzed_players.append(i)
 							i += 1
-						print buzzed_players
 
 					# CHECK FOR SKIP
 					skip = self.__check_skip(input)
 
 					if skip:
-						print "SKIP!"
 						if speaking and self.speech_popen:
 							self.speech_popen.kill()
 				
