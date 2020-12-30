@@ -1,4 +1,4 @@
-import pygame, random, os
+import pygame, random, subprocess
 import util, state, gen
 
 from constants import *
@@ -51,6 +51,9 @@ class Game:
 		
 		# SET DAILY DOUBLES
 		self.__set_dailydoubles()
+
+		# SYSTEM PROCESSES
+		self.speech_popen = None
 		
 		# PLAY SOUNDS
 		if self.SFX_ON: BOARDFILL_SOUND.play()
@@ -81,6 +84,11 @@ class Game:
 		else: return False
 		
 	def update(self, dirty_input = None, event = None):
+
+		# check if speaking
+		speaking = False
+		if self.speech_popen:
+			speaking = self.speech_popen.poll() is None
 		
 		# sets input value of all inactive players to 0
 		if dirty_input: input = self.__clean_input(dirty_input)
@@ -131,14 +139,18 @@ class Game:
 				else:
 
 					# CHECK FOR BUZZ IN
-					i = 0
-					for buzzer in input[:NUM_PLAYERS]:
-						if int(buzzer[0]) == 1: buzzed_players.append(i)
-						i += 1
+					if not speaking:
+						i = 0
+						for buzzer in input[:NUM_PLAYERS]:
+							if int(buzzer[0]) == 1: buzzed_players.append(i)
+							i += 1
+
 					# CHECK FOR SKIP
 					skip = self.__check_skip(input)
 
-					if skip: print "SKIP!"
+					if skip:
+						if speaking and self.speech_popen:
+							self.speech_popen.kill()
 				
 				# only if someone has buzzed in
 				if len(buzzed_players) > 0:
@@ -193,7 +205,6 @@ class Game:
 
 						self.fj_channel.set_endevent(END_FJ_EVENT)
 						self.fj_channel.play(FINALJEP_SOUND)
-						print "set event"
 					
 					# mute is sound effects off
 					if not self.SFX_ON: self.fj_channel.set_volume(0)
@@ -220,7 +231,7 @@ class Game:
 				if completed: self.state.all_checks_set = True
 				
 		# UPDATE GAME STATE
-		self.state.update(input, self.cur_block, skip)
+		self.state.update(input, self.cur_block, skip, speaking)
 		
 		# UPDATE ROUND
 		self.__update_round()
@@ -240,7 +251,6 @@ class Game:
 
 			if self.currently_playing:
 				self.currently_playing.stop()
-				print "TEST"
 		
 		# DISPLAY GAME STATE
 		self.__update_display()
@@ -276,9 +286,6 @@ class Game:
 					if int(input[i][0]): player.bet_set = True
 					elif int(input[i][1]): player.inc_bet(True)
 					elif int(input[i][4]): player.dec_bet(True)
-					
-				print "TEST"
-				print player.bet_set
 			
 			# indicate correct/incorrect
 			if self.state.if_state(FINAL_CHECK_STATE):
@@ -689,9 +696,7 @@ class Game:
 	def __ttsx_speak(self, words):
 
 		if self.SPEECH_ON:
-
-			try: os.system('say ' + str(words).decode('ascii') + ' &')
-			except: os.system('say unknown error')
+			self.speech_popen = subprocess.Popen(["say", str(words).decode('utf-8')])
 		
 		self.clear_events_flag = True
 		self.clue_read = True

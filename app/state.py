@@ -28,7 +28,8 @@ class State:
 		self.fj_timeout = False
 		self.new_game = False
 	
-	def set_buzzed_player(self, p): self.buzzed_player = p
+	def set_buzzed_player(self, p):
+		self.buzzed_player = p
 	
 	def set_final_jeopardy(self):
 	
@@ -36,7 +37,7 @@ class State:
 		self.final = True
 		self.cur_state = FINAL_BET_STATE
 		
-	def update(self, input, cur_block = None, skip = False):
+	def update(self, input, cur_block = None, skip = False, speaking = False):
 	
 		# RESET VARIABLES
 		self.check_round = False
@@ -56,8 +57,8 @@ class State:
 			# skip if timed out
 			if input:
 			
-				active_down = int(input[self.active_player][0])
-				buzzed_down = int(input[self.buzzed_player][0])
+				active_down = int(input[self.active_player][0]) and not speaking
+				buzzed_down = int(input[self.buzzed_player][0]) and not speaking
 				check_down = int(input[self.buzzed_player][2]) or int(input[self.buzzed_player][3])
 		
 			# MAIN SCREEN STATE LOGIC
@@ -115,7 +116,6 @@ class State:
 				if timedout:
 				
 					if self.SFX_ON: TIMEOUT_SOUND.play()
-					print "BUZZED IN"
 					time.sleep(1)
 					self.buzzed_timeout = True
 				
@@ -166,7 +166,6 @@ class State:
 	def __check_timeout(self, skip = False):
 	
 		if self.fj_timeout:
-			print "fj timeout"
 			return True
 		elif self.if_state(SHOW_CLUE_STATE) and not self.final and ((self.game_clock >= CLUE_TIMEOUT) or skip): return True
 
