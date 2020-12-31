@@ -86,7 +86,8 @@ def get_img_from_wiki(query, num):
         try:
             # use first suggestion
             page = wikipedia.page((str(de).split('\n'))[1])
-        except:
+        except Exception as e:
+            print e
             print "some other error"
             return None
 
@@ -107,7 +108,8 @@ def get_img_from_wiki(query, num):
             res = urllib.urlretrieve(matches[0], path + "wiki" + str(num) + ".jpg")
             print res[0]
             return res[0]
-        except:
+        except Exception as e:
+            print e
             print "### JEOPARDY ERROR ###"
             print query
             print matches
@@ -135,7 +137,8 @@ def get_resource(text, num):
             try:
                 url = trim.group(0)
                 break
-            except:
+            except Exception as e:
+                print e
                 continue
 
         # url is now ready to be retrieved
@@ -276,7 +279,8 @@ def dtf():
         try:
             os.remove(path + 'temp' + str(num) + '.jpg')
             num += 1
-        except:
+        except Exception as e:
+            print e
             num = -1
 
 

@@ -102,7 +102,8 @@ class Resource:
 
             try:
                 return pygame.image.load(res)
-            except:
+            except Exception as e:
+                print e
                 print "image load failed for: " + res
                 return None
 
