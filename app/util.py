@@ -75,7 +75,7 @@ def scrub_text(text):
 
 
 def get_img_from_wiki(query, num):
-    path = os.getcwd() + "\\" + constants.TEMP_PATH
+    path = os.path.join(os.getcwd(), constants.TEMP_PATH)
 
     try:
         print query
@@ -119,7 +119,7 @@ def get_img_from_wiki(query, num):
 
 # PULL MEDIA RESOURCES FROM J-ARCHIVE
 def get_resource(text, num):
-    path = os.getcwd() + "\\" + constants.TEMP_PATH
+    path = os.path.join(os.getcwd(), constants.TEMP_PATH)
     url = ''
 
     img_prog = re.compile('.*<a href=".*\.jpg".*')
@@ -152,7 +152,8 @@ def get_resource(text, num):
             # return image
             return res[0]
 
-        except:
+        except Exception as e:
+            print e
             print "ERROR OPENING " + str(url)
 
             # indicate that resource tag present, but no resource obtained

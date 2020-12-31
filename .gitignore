@@ -4,6 +4,6 @@
 .eggs/*
 dist/*
 build/*
-/app/temp/*
+/app/res/temp/*
 
 
