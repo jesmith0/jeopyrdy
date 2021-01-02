@@ -16,7 +16,9 @@ def main():
     timeout = 0
 
     # INITIALIZE ALL IMPORTED PYGAME MODULES
+    pygame.mixer.pre_init(44100)
     pygame.init()
+    pygame.mixer.init(44100)
 
     # CREATE CLOCK OBJECT
     clock = pygame.time.Clock()

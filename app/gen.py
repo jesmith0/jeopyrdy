@@ -131,6 +131,10 @@ def cursor_surface(width=BOARD_SIZE[0] / 6, height=BOARD_SIZE[1] / 6, color=WHIT
     # fill surface
     cursor_surf.fill(BLUE)
 
+    # set colour key and alpha
+    cursor_surf.set_colorkey(BLUE)
+    cursor_surf.set_alpha(255)
+
     # draw player indicator
     if text:
 
@@ -155,10 +159,6 @@ def cursor_surface(width=BOARD_SIZE[0] / 6, height=BOARD_SIZE[1] / 6, color=WHIT
         pygame.gfxdraw.filled_circle(cursor_surf, center[0], center[1], 35, color)
         pygame.gfxdraw.aacircle(cursor_surf, center[0], center[1], 35, color)
         cursor_surf.blit(text_surf, (text_loc[0], text_loc[1]))
-
-    # set colour key and alpha
-    cursor_surf.set_colorkey(BLUE)
-    cursor_surf.set_alpha(255)
 
     # horizontal lines
     pygame.draw.line(cursor_surf, color, (0, 0), (width, 0), 5)

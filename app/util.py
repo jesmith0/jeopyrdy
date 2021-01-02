@@ -294,8 +294,7 @@ def get_buzzers():
     buzzer = None
 
     for i in range(0, pygame.joystick.get_count()):
-
-        if pygame.joystick.Joystick(i).get_name() == 'Buzz':
+        if 'Buzz' in pygame.joystick.Joystick(i).get_name():
             buzzer = pygame.joystick.Joystick(i)
             buzzer.init()
 

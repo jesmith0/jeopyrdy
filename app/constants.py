@@ -28,8 +28,7 @@ WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="
 
 # default resolutions
 ################
-pygame.init()
-display_info = pygame.display.Info()
+# display_info = pygame.display.Info()
 # DISPLAY_RES = (display_info.current_w, display_info.current_h)
 DISPLAY_RES = (1360, 768)
 BOARD_SIZE = (900, 600)
@@ -64,6 +63,10 @@ POINT_VALUES = [[100, 200, 300, 400, 500], [200, 400, 600, 800, 1000]]
 ################
 END_FJ_EVENT = pygame.USEREVENT + 1
 ################
+
+pygame.mixer.pre_init(44100)
+pygame.init()
+pygame.mixer.init(44100)
 
 # static image surfaces
 ################
