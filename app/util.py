@@ -6,11 +6,20 @@ import player
 import pygame
 import random
 import re
+import urllib.parse
 import urllib.request
 import wikipedia
 
 # GLOBAL VARIABLES
 image_count = 0
+
+# image link inside a j-archive clue (served over http or https)
+JARCHIVE_IMAGE = re.compile(r'<a href="(https?://[^"]+\.jpg)"', re.IGNORECASE)
+
+# image types pygame can load that Wikipedia pages commonly use
+WIKI_IMAGE_EXTS = (".jpg", ".jpeg", ".png")
+
+wikipedia.set_user_agent(constants.USER_AGENT)
 
 
 # CONVERT PYGAME EVENT TO USABLE GAME INPUT
@@ -74,17 +83,15 @@ def scrub_text(text):
 
 
 def get_img_from_wiki(query, num):
-    path = os.path.join(os.getcwd(), constants.TEMP_PATH)
-
     try:
         print(query)
-        page = wikipedia.page(query)
+        page = wiki_page(query)
 
     except wikipedia.exceptions.DisambiguationError as de:
 
         try:
             # use first suggestion
-            page = wikipedia.page((str(de).split('\n'))[1])
+            page = wiki_page((str(de).split('\n'))[1])
         except Exception as e:
             print(e)
             print("some other error")
@@ -94,81 +101,62 @@ def get_img_from_wiki(query, num):
         print(pe)
         return None
 
-    matches = []
-    jpg = re.compile(r'.*\.jpg')
-
+    # first photo-like image on the page (skips svg icons and logos)
     for image in page.images:
+        # image urls carry tracking query strings (?utm_source=...)
+        ext = os.path.splitext(urllib.parse.urlsplit(image).path)[1].lower()
+        if ext in WIKI_IMAGE_EXTS:
+            return download(image, os.path.join(constants.TEMP_PATH, "wiki" + str(num) + ext))
 
-        result = jpg.match(image)
-        if result: matches.append(image)
+    return None
 
-    if matches:
-        try:
-            res = urllib.request.urlretrieve(matches[0], path + "wiki" + str(num) + ".jpg")
-            print(res[0])
-            return res[0]
-        except Exception as e:
-            print(e)
-            print("### JEOPARDY ERROR ###")
-            print(query)
-            print(matches)
-            print("COULD NOT RETRIEVE IMAGE FROM WIKIPEDIA")
 
-    else:
-        return None
+# LOOK UP A WIKIPEDIA PAGE BY TITLE
+# The package's auto-suggest "corrects" exact titles ("Julianne Moore" ->
+# "julianne more"), so only fall back to it when the exact title isn't found.
+def wiki_page(query):
+    try:
+        return wikipedia.page(query, auto_suggest=False)
+    except wikipedia.exceptions.PageError:
+        return wikipedia.page(query, auto_suggest=True)
 
 
 # PULL MEDIA RESOURCES FROM J-ARCHIVE
+# Returns a local image path, None if the clue has no image, or "404" if it has
+# one that couldn't be downloaded (the caller then falls back to Wikipedia).
 def get_resource(text, num):
-    path = os.path.join(os.getcwd(), constants.TEMP_PATH)
-    url = ''
-
-    img_prog = re.compile(r'.*<a href=".*\.jpg".*')
-    result = img_prog.match(text)
-
-    # check if IMAGE resource tag is present (all j-archive images are jpg)
-    if result:
-
-        # pull url from clue
-        split = text.split('>')
-        for item in split:
-            trim = re.search(r'http:\/\/.*\.jpg', item)
-            try:
-                url = trim.group(0)
-                break
-            except Exception as e:
-                print(e)
-                continue
-
-        # url is now ready to be retrieved
-
-        try:
-            # retrieve url data
-            res = urllib.request.urlretrieve(url, path + "ja" + str(num) + ".jpg")
-
-            # ensure content type is image, else resource is not available
-            if 'Content-Type: text/html' in str(res[1]): return '404'
-
-            print(res[0])
-
-            # return image
-            return res[0]
-
-        except Exception as e:
-            print(e)
-            print("ERROR OPENING " + str(url))
-
-            # indicate that resource tag present, but no resource obtained
-            return "404"
-
-    # if no resource tag present
-    else:
+    match = JARCHIVE_IMAGE.search(text)
+    if not match:
         return None
+
+    url = match.group(1)
+    return download(url, os.path.join(constants.TEMP_PATH, "ja" + str(num) + ".jpg")) or "404"
+
+
+# DOWNLOAD AN IMAGE TO dest; RETURNS dest, OR None IF IT FAILED OR WASN'T AN IMAGE
+def download(url, dest):
+    request = urllib.request.Request(url, headers={"User-Agent": constants.USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=constants.HTTP_TIMEOUT) as response:
+            if not response.headers.get_content_type().startswith("image/"):
+                print("NOT AN IMAGE: " + url)
+                return None
+            data = response.read()
+    except (OSError, ValueError) as e:  # URLError/HTTPError/timeouts are OSErrors
+        print(e)
+        print("ERROR OPENING " + url)
+        return None
+
+    with open(dest, "wb") as f:
+        f.write(data)
+    print(dest)
+    return dest
 
 
 # FETCH A WEB PAGE AS A LIST OF DECODED TEXT LINES
 def fetch_lines(url):
-    with urllib.request.urlopen(url) as page:
+    request = urllib.request.Request(url, headers={"User-Agent": constants.USER_AGENT})
+    with urllib.request.urlopen(request, timeout=constants.HTTP_TIMEOUT) as page:
         return [raw.decode("utf-8", "replace") for raw in page.readlines()]
 
 

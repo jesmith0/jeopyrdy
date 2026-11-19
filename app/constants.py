@@ -19,8 +19,12 @@ MUSIC_PATH = os.path.join(RES_DIR, "music", "")
 TEMP_PATH = os.path.join(RES_DIR, "temp", "")
 os.makedirs(TEMP_PATH, exist_ok=True)
 	
-WEB_ADDR_CLUE = "http://www.j-archive.com/showgame.php?game_id="
-WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="
+WEB_ADDR_CLUE = "https://j-archive.com/showgame.php?game_id="
+WEB_ADDR_RESP = "https://j-archive.com/showgameresponses.php?game_id="
+
+# identifies the game to web services (Wikimedia rejects default Python agents)
+USER_AGENT = "jeopyrdy/0.2 (+https://github.com/jesmith0/jeopyrdy)"
+HTTP_TIMEOUT = 20
 ################
 
 # default resolutions
