@@ -1,4 +1,6 @@
-import constants, pygame, gen
+import constants
+import pygame
+import gen
 
 
 class Block:
@@ -53,8 +55,8 @@ class Category:
         # state
         self.completed = False
 
-        self.board_surface = gen.text_surface(self.text, constants.BOARD_SIZE[0] / 6 - 20,
-                                              constants.BOARD_SIZE[0] / 6 - 20, 20, constants.YELLOW, "helvetica",
+        self.board_surface = gen.text_surface(self.text, constants.BOARD_SIZE[0] // 6 - 20,
+                                              constants.BOARD_SIZE[0] // 6 - 20, 20, constants.YELLOW, "helvetica",
                                               constants.DARK_BLUE)
 
     def __str__(self): return self.text
@@ -103,8 +105,8 @@ class Resource:
             try:
                 return pygame.image.load(res)
             except Exception as e:
-                print e
-                print "image load failed for: " + res
+                print(e)
+                print("image load failed for: " + res)
                 return None
 
         else:

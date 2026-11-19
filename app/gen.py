@@ -60,8 +60,8 @@ def text_surface(text, max_width=BOARD_SIZE[0], max_height=BOARD_SIZE[1], font_s
     for line in line_list:
 
         # blit locations
-        x_loc = max_width / 2 - font[font_size].size(line)[0] / 2
-        y_loc = max_height / 2 - (len(line_list) * padding) / 2 + i * padding
+        x_loc = max_width // 2 - font[font_size].size(line)[0] // 2
+        y_loc = max_height // 2 - (len(line_list) * padding) // 2 + i * padding
 
         # render text
         if shadow: text_surf.blit(font[font_size].render(line, 1, BLACK), (x_loc + 2, y_loc + 2))
@@ -109,8 +109,8 @@ def board_surface():
     color = YELLOW
 
     # intervals for line placement
-    width_interval = BOARD_SIZE[0] / 6
-    height_interval = BOARD_SIZE[1] / 6
+    width_interval = BOARD_SIZE[0] // 6
+    height_interval = BOARD_SIZE[1] // 6
 
     # create surface and fill with dark blue
     board_surf = pygame.Surface(BOARD_SIZE)
@@ -124,7 +124,7 @@ def board_surface():
     return board_surf
 
 
-def cursor_surface(width=BOARD_SIZE[0] / 6, height=BOARD_SIZE[1] / 6, color=WHITE, text=None):
+def cursor_surface(width=BOARD_SIZE[0] // 6, height=BOARD_SIZE[1] // 6, color=WHITE, text=None):
     # create surface
     cursor_surf = pygame.Surface((width + 1, height + 1))
 
@@ -176,8 +176,8 @@ def value_surfaces():
     color = YELLOW
 
     # based on board size
-    width = BOARD_SIZE[0] / 6 - 20
-    height = BOARD_SIZE[1] / 6 - 20
+    width = BOARD_SIZE[0] // 6 - 20
+    height = BOARD_SIZE[1] // 6 - 20
 
     # create list of surfaces
     value_surfs = []

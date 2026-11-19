@@ -29,7 +29,7 @@ class Menu:
         # misc variables
         self.cursor_loc = 0
         self.game_date = None
-        self.charsel_dimension = [((NUM_SPRITES + 1) / 2), (NUM_SPRITES + 1) % 2]
+        self.charsel_dimension = [((NUM_SPRITES + 1) // 2), (NUM_SPRITES + 1) % 2]
 
         # which players are active
         self.active_players = [-1, -1, -1, -1]
@@ -59,7 +59,7 @@ class Menu:
 
     def set_game_date(self, date):
 
-        print self.game_date
+        print(self.game_date)
 
         self.game_date = date
         self.gamedate_text_surface = gen.menu_item("", self.game_date, False)
@@ -75,7 +75,7 @@ class Menu:
 
     def __get_pos_from_num(self, num):
 
-        y_pos = num / (self.charsel_dimension[0])
+        y_pos = num // (self.charsel_dimension[0])
 
         if y_pos > 0:
             x_pos = num % (y_pos * self.charsel_dimension[0])
@@ -114,7 +114,7 @@ class Menu:
 
         if not self.char_selected[i]:
 
-            if not (self.player_cursor_pos[i] in self.active_players) or self.player_cursor_pos[i] == 0:
+            if self.player_cursor_pos[i] not in self.active_players or self.player_cursor_pos[i] == 0:
                 # set character selected
                 self.active_players[i] = self.player_cursor_pos[i]
                 self.char_selected[i] = True
@@ -256,14 +256,6 @@ class Menu:
         else:
             return False
 
-    def __exit_menu(self):
-
-        # update game constants
-        SFX_ON = self.sfx_state
-        MUSIC_ON = self.music_state
-
-        return False
-
     def __update_display(self):
 
         # update text surfaces based on state values
@@ -273,8 +265,8 @@ class Menu:
         self.SCREEN.fill(BLUE)
 
         # calculate offset for centering text
-        offset = gen.menu_item("> INPUT: ", "KEYBOARD", False).get_width() / 2
-        x_loc = DISPLAY_RES[0] / 2 - offset - HELVETICA[30].size("")[0]
+        offset = gen.menu_item("> INPUT: ", "KEYBOARD", False).get_width() // 2
+        x_loc = DISPLAY_RES[0] // 2 - offset - HELVETICA[30].size("")[0]
 
         scaled_alex = pygame.transform.scale(ALEX_IMAGE, (ALEX_IMAGE.get_width() * 3, ALEX_IMAGE.get_height() * 3))
 
@@ -288,9 +280,9 @@ class Menu:
             util.blit_alpha(self.SCREEN, scaled_alex, (0, DISPLAY_RES[1] - scaled_alex.get_height()), 100)
             util.blit_alpha(self.SCREEN, pygame.transform.flip(scaled_alex, True, True),
                             (DISPLAY_RES[0] - scaled_alex.get_width(), DISPLAY_RES[1] - scaled_alex.get_height()), 100)
-            self.SCREEN.blit(LOGO_IMAGE, (DISPLAY_RES[0] / 2 - LOGO_IMAGE.get_width() / 2, 70))
+            self.SCREEN.blit(LOGO_IMAGE, (DISPLAY_RES[0] // 2 - LOGO_IMAGE.get_width() // 2, 70))
             self.SCREEN.blit(self.gamedate_text_surface,
-                             (DISPLAY_RES[0] / 2 - self.gamedate_text_surface.get_width() / 2, 275))
+                             (DISPLAY_RES[0] // 2 - self.gamedate_text_surface.get_width() // 2, 275))
             self.SCREEN.blit(self.start_text_surface, (x_loc, 325))
             self.SCREEN.blit(self.newgame_text_surface, (x_loc, 360))
             self.SCREEN.blit(self.check_buzzers_surface, (x_loc, 395))
@@ -345,8 +337,7 @@ class Menu:
         x_dim = self.charsel_dimension[0]
         y_dim = 2 + self.charsel_dimension[1]
 
-        x_home = DISPLAY_RES[0] / 2 - (200 * x_dim) / 2
-        y_home = 200
+        x_home = DISPLAY_RES[0] // 2 - (200 * x_dim) // 2
 
         for i in range(y_dim):
             for j in range(x_dim):
@@ -390,13 +381,13 @@ class Menu:
                 char_surfs.append(gen.char_surface(0).convert())
 
         # width interval dependant on number of players
-        width_interval = DISPLAY_RES[0] / 4
+        width_interval = DISPLAY_RES[0] // 4
 
         # blit all characters
         for i in range(4):
 
             # calculate location
-            blit_loc = (((width_interval * (i)) + width_interval / 2) - char_surfs[i].get_width() / 2,
+            blit_loc = (((width_interval * (i)) + width_interval // 2) - char_surfs[i].get_width() // 2,
                         DISPLAY_RES[1] - char_surfs[i].get_height())
 
             if self.char_selected[i]:
