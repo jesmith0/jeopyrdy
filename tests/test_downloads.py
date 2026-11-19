@@ -92,12 +92,14 @@ def test_downloads_send_user_agent_and_timeout(web, monkeypatch):
 
 
 def test_wikipedia_fallback_picks_first_photo(web, monkeypatch):
+    # real url shape: wikimedia appends tracking query strings
+    utm = "?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=original"
     page = types.SimpleNamespace(images=[
-        "https://upload.wikimedia.org/wikipedia/commons/a/aa/Icon.svg",
-        "https://upload.wikimedia.org/wikipedia/en/c/cd/Hogan%27s_Heroes_logo.png",
-        "https://upload.wikimedia.org/wikipedia/commons/b/bb/Cast.jpg",
+        "https://upload.wikimedia.org/wikipedia/commons/a/aa/Icon.svg" + utm,
+        "https://upload.wikimedia.org/wikipedia/en/c/cd/Hogan%27s_Heroes_logo.png" + utm,
+        "https://upload.wikimedia.org/wikipedia/commons/b/bb/Cast.jpg" + utm,
     ])
-    monkeypatch.setattr(util.wikipedia, "page", lambda query: page)
+    monkeypatch.setattr(util.wikipedia, "page", lambda query, auto_suggest: page)
     web.pages[page.images[1]] = (200, "image/png", b"\x89PNG fake")
 
     path = util.get_img_from_wiki("Hogan's Heroes", 7)
@@ -107,7 +109,7 @@ def test_wikipedia_fallback_picks_first_photo(web, monkeypatch):
 
 def test_wikipedia_forbidden_returns_none(web, monkeypatch):
     page = types.SimpleNamespace(images=["https://upload.wikimedia.org/x/Photo.jpg"])
-    monkeypatch.setattr(util.wikipedia, "page", lambda query: page)
+    monkeypatch.setattr(util.wikipedia, "page", lambda query, auto_suggest: page)
     web.pages[page.images[0]] = (403, "text/plain", b"forbidden")
 
     assert util.get_img_from_wiki("anything", 0) is None
@@ -115,3 +117,22 @@ def test_wikipedia_forbidden_returns_none(web, monkeypatch):
 
 def test_wikipedia_package_uses_our_user_agent():
     assert util.wikipedia.wikipedia.USER_AGENT == constants.USER_AGENT
+
+
+def test_wiki_lookup_tries_exact_title_before_auto_suggest(monkeypatch):
+    calls = []
+
+    def fake_page(query, auto_suggest):
+        calls.append(auto_suggest)
+        if not auto_suggest and query == "julianne moore typo":
+            raise util.wikipedia.exceptions.PageError(query)
+        return query
+
+    monkeypatch.setattr(util.wikipedia, "page", fake_page)
+
+    assert util.wiki_page("Julianne Moore") == "Julianne Moore"
+    assert calls == [False]  # exact title found, auto-suggest never used
+
+    calls.clear()
+    util.wiki_page("julianne moore typo")
+    assert calls == [False, True]

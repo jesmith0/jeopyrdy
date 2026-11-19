@@ -6,6 +6,7 @@ import player
 import pygame
 import random
 import re
+import urllib.parse
 import urllib.request
 import wikipedia
 
@@ -84,13 +85,13 @@ def scrub_text(text):
 def get_img_from_wiki(query, num):
     try:
         print(query)
-        page = wikipedia.page(query)
+        page = wiki_page(query)
 
     except wikipedia.exceptions.DisambiguationError as de:
 
         try:
             # use first suggestion
-            page = wikipedia.page((str(de).split('\n'))[1])
+            page = wiki_page((str(de).split('\n'))[1])
         except Exception as e:
             print(e)
             print("some other error")
@@ -102,11 +103,22 @@ def get_img_from_wiki(query, num):
 
     # first photo-like image on the page (skips svg icons and logos)
     for image in page.images:
-        ext = os.path.splitext(image)[1].lower()
+        # image urls carry tracking query strings (?utm_source=...)
+        ext = os.path.splitext(urllib.parse.urlsplit(image).path)[1].lower()
         if ext in WIKI_IMAGE_EXTS:
             return download(image, os.path.join(constants.TEMP_PATH, "wiki" + str(num) + ext))
 
     return None
+
+
+# LOOK UP A WIKIPEDIA PAGE BY TITLE
+# The package's auto-suggest "corrects" exact titles ("Julianne Moore" ->
+# "julianne more"), so only fall back to it when the exact title isn't found.
+def wiki_page(query):
+    try:
+        return wikipedia.page(query, auto_suggest=False)
+    except wikipedia.exceptions.PageError:
+        return wikipedia.page(query, auto_suggest=True)
 
 
 # PULL MEDIA RESOURCES FROM J-ARCHIVE
