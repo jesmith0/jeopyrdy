@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import pytest
@@ -59,6 +60,21 @@ def test_speak_survives_missing_command():
 @pytest.mark.skipif(not speech.AVAILABLE, reason="no speech backend installed")
 def test_real_backend_speaks_non_ascii_text():
     # Non-ASCII clue text used to fail with a Unicode decode error (#8).
-    proc = speech.speak("Björk sang about the café in São Paulo, señor.")
+    text = "Björk sang about the café in São Paulo, señor."
+    argv, use_stdin = speech.BACKEND
+
+    # Same invocation as speech.speak(), but keep stderr for diagnostics.
+    result = subprocess.run(
+        argv if use_stdin else [*argv, text],
+        input=text.encode("utf-8") if use_stdin else None,
+        capture_output=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stderr.decode(errors="replace")
+
+
+@pytest.mark.skipif(not speech.AVAILABLE, reason="no speech backend installed")
+def test_real_backend_via_speak():
+    proc = speech.speak("Who is Alex Trebek?")
     assert proc is not None
     assert proc.wait(timeout=120) == 0

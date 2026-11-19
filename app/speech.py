@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 _WINDOWS_SAPI = (
+    "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; "
     "Add-Type -AssemblyName System.Speech; "
     "(New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak([Console]::In.ReadToEnd())"
 )
