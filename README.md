@@ -15,6 +15,8 @@ pip install -r requirements.txt
 ## Run
 ```python app/main.py```
 
+Text-to-speech uses the system speech command: `say` on macOS, PowerShell's built-in speech on Windows, and `espeak-ng`, `espeak` or `spd-say` on Linux (e.g. `sudo apt install espeak-ng`). If none is installed, the SPEECH menu option shows `N/A` and the game runs without it.
+
 ## Test
 ```
 pip install pytest ruff

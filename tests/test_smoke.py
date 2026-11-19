@@ -59,3 +59,16 @@ def test_menu_character_grid_uses_integer_positions():
     m = menu.Menu(pygame.display.get_surface(), pygame.mixer.Channel(0), None)
     assert m.charsel_dimension == [6, 0]
     assert m._Menu__get_pos_from_num(7) == [1, 1]
+
+
+def test_menu_disables_speech_without_backend(monkeypatch):
+    import speech
+
+    monkeypatch.setattr(speech, "AVAILABLE", False)
+    m = menu.Menu(pygame.display.get_surface(), pygame.mixer.Channel(0), None)
+    assert m.speech_state is False
+
+    # selecting the SPEECH menu item must not turn it on
+    m.cursor_loc = 4
+    m.update([[1, 0, 0, 0, 0], [0] * 5, [0] * 5, [0] * 5])
+    assert m.speech_state is False
