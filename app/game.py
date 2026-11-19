@@ -291,7 +291,7 @@ class Game:
         self.state.fj_timeout = True
 
         # remove end event
-        self.fj_channel.set_endevent(None)
+        self.fj_channel.set_endevent()
 
     def __proc_final_input(self, input):
 
