@@ -97,7 +97,7 @@ class State:
                 return
 
             # DISPLAY CLUE SCREEN STATE LOGIC
-            elif self.if_state(SHOW_CLUE_STATE) and (((timedout or (not self.final and buzzed_down)))):
+            elif self.if_state(SHOW_CLUE_STATE) and (timedout or (not self.final and buzzed_down)):
 
                 if not timedout and not self.final:
                     self.cur_state = BUZZED_STATE
@@ -115,7 +115,7 @@ class State:
                 return
 
             # BUZZED IN SCREEN STATE LOGIC
-            elif self.if_state(BUZZED_STATE) and (((timedout or (self.game_clock >= DELAY and buzzed_down)))):
+            elif self.if_state(BUZZED_STATE) and (timedout or (self.game_clock >= DELAY and buzzed_down)):
 
                 if timedout:
 

@@ -1,4 +1,4 @@
-import platform
+import os
 import pygame
 
 # game information
@@ -11,16 +11,13 @@ FORCE_GAME = None
 
 # addressing
 ################
-if "Windows" in platform.system():
-	IMAGE_PATH = "res\\images\\"
-	FONT_PATH = "res\\fonts\\"
-	MUSIC_PATH = "res\\music\\"
-	TEMP_PATH = "res\\temp\\"
-else:
-	IMAGE_PATH = "./res/images/"
-	FONT_PATH = "./res/fonts/"
-	MUSIC_PATH = "./res/music/"
-	TEMP_PATH = "./res/temp/"
+# resolved relative to this file, so the game runs from any working directory
+RES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "res")
+IMAGE_PATH = os.path.join(RES_DIR, "images", "")
+FONT_PATH = os.path.join(RES_DIR, "fonts", "")
+MUSIC_PATH = os.path.join(RES_DIR, "music", "")
+TEMP_PATH = os.path.join(RES_DIR, "temp", "")
+os.makedirs(TEMP_PATH, exist_ok=True)
 	
 WEB_ADDR_CLUE = "http://www.j-archive.com/showgame.php?game_id="
 WEB_ADDR_RESP = "http://j-archive.com/showgameresponses.php?game_id="

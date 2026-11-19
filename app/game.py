@@ -371,8 +371,8 @@ class Game:
     # UPDATES CLUES AND CATEGORIES AND CURSOR ON BOARD SURFACE
     def __update_board_surf(self):
 
-        width_interval = BOARD_SIZE[0] / 6
-        height_interval = BOARD_SIZE[1] / 6
+        width_interval = BOARD_SIZE[0] // 6
+        height_interval = BOARD_SIZE[1] // 6
 
         # blit board surface with blank board
         self.board_surf.blit(self.blank_board_surf, (0, 0))
@@ -400,7 +400,7 @@ class Game:
     def __display_clue(self):
 
         # generate category and clue surface
-        cat_surf = gen.text_surface((str(self.cur_block.category).upper()))
+        cat_surf = gen.text_surface(str(self.cur_block.category).upper())
         clue_surf = gen.text_surface(self.cur_block.clue, BOARD_SIZE[0] + 100, BOARD_SIZE[1] + 100, 32, WHITE,
                                      "korinna")
 
@@ -435,7 +435,6 @@ class Game:
             scale_height = 200.0
             height = res_surface.get_height()
             scale_width = res_surface.get_width() * (scale_height / height)
-            scaled_surf = pygame.Surface((scale_width, scale_height))
 
             # res_surface = pygame.transform.smoothscale(res_surface, (scale_width, scale_height), scaled_surf)
             res_surface = pygame.transform.scale(res_surface, (int(scale_width), int(scale_height)))
@@ -443,11 +442,11 @@ class Game:
             # res_surface = pygame.transform.scale(res_surface, (res_surface.get_width()/2, res_surface.get_height()/2))
             # self.SCREEN.blit(scaled_surf, (DISPLAY_RES[0]/2 - res_surface.get_width()/2, 400))
             self.SCREEN.blit(res_surface, (
-            (DISPLAY_RES[0] / 2) - (res_surface.get_width() / 2), DISPLAY_RES[1] - res_surface.get_height() - 20))
+            (DISPLAY_RES[0] // 2) - (res_surface.get_width() // 2), DISPLAY_RES[1] - res_surface.get_height() - 20))
 
         # blit category and clue to screen
-        self.SCREEN.blit(cat_surf, (DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2, -200))
-        self.SCREEN.blit(clue_surf, ((DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2) - 50, 0))
+        self.SCREEN.blit(cat_surf, (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, -200))
+        self.SCREEN.blit(clue_surf, ((DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2) - 50, 0))
 
         # read response
         if self.state.init and (self.state.if_state(SHOW_CLUE_STATE) or self.state.dailydouble): self.__ttsx_speak(
@@ -456,14 +455,14 @@ class Game:
     # BLIT RESPONSE DISPLAY TO SCREEN
     def __display_resp(self):
 
-        main_center_loc = [BOARD_SIZE[0] / 2, BOARD_SIZE[1] / 2]
+        main_center_loc = [BOARD_SIZE[0] // 2, BOARD_SIZE[1] // 2]
 
         # generate marker surfaces
         correct_surf = gen.correct_surface(True)
         incorrect_surf = gen.correct_surface(False)
 
         # generate character and text surfaces
-        cat_surf = gen.text_surface((str(self.cur_block.category).upper()))
+        cat_surf = gen.text_surface(str(self.cur_block.category).upper())
         char_surf = self.players[self.state.buzzed_player].char_surface
         text_surf = gen.text_surface(self.cur_block.response, BOARD_SIZE[0], BOARD_SIZE[1], 40, WHITE, "korinna")
 
@@ -478,8 +477,8 @@ class Game:
         self.SCREEN.blit(char_surf, (0, DISPLAY_RES[1] - char_surf.get_height()))
 
         # blit response
-        self.SCREEN.blit(cat_surf, (DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2, -200))
-        self.SCREEN.blit(text_surf, (DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2, 0))
+        self.SCREEN.blit(cat_surf, (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, -200))
+        self.SCREEN.blit(text_surf, (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, 0))
 
         # blit markers
         if not (self.state.buzzed_timeout or self.state.clue_timeout):
@@ -505,7 +504,7 @@ class Game:
         util.blit_alpha(self.SCREEN, scaled_image, (0, DISPLAY_RES[1] - scaled_image.get_height()), 100)
 
         # blit game board
-        self.SCREEN.blit(self.board_surf, (DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2, 0))
+        self.SCREEN.blit(self.board_surf, (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, 0))
 
         # blit all characters
         self.__blit_all_characters(self.SCREEN)
@@ -530,13 +529,13 @@ class Game:
                                          63, WHITE, "digital")
 
         # blit to image surface
-        scaled_image_surf.blit(bet_text_surf, (0, scaled_image_surf.get_height() / 3 + 20))
+        scaled_image_surf.blit(bet_text_surf, (0, scaled_image_surf.get_height() // 3 + 20))
 
         # blit to screen
         self.SCREEN.blit(background_surf, (0, 0))
-        self.SCREEN.blit(prompt_text_surf, (DISPLAY_RES[0] / 2 - prompt_text_surf.get_width() / 2, -200))
+        self.SCREEN.blit(prompt_text_surf, (DISPLAY_RES[0] // 2 - prompt_text_surf.get_width() // 2, -200))
         self.SCREEN.blit(scaled_image_surf, (
-        DISPLAY_RES[0] / 2 - scaled_image_surf.get_width() / 2, DISPLAY_RES[1] - scaled_image_surf.get_height()))
+        DISPLAY_RES[0] // 2 - scaled_image_surf.get_width() // 2, DISPLAY_RES[1] - scaled_image_surf.get_height()))
 
     def __display_final_bet(self):
 
@@ -546,14 +545,14 @@ class Game:
 
         # blit category
         prompt_text_surf = gen.text_surface(self.cur_block.category)
-        self.SCREEN.blit(prompt_text_surf, (DISPLAY_RES[0] / 2 - prompt_text_surf.get_width() / 2, -200))
+        self.SCREEN.blit(prompt_text_surf, (DISPLAY_RES[0] // 2 - prompt_text_surf.get_width() // 2, -200))
 
         # blit all characters
         self.__blit_all_characters(self.SCREEN)
 
     def __display_final_check(self):
 
-        main_center_loc = [BOARD_SIZE[0] / 2, BOARD_SIZE[1] / 2]
+        main_center_loc = [BOARD_SIZE[0] // 2, BOARD_SIZE[1] // 2]
 
         correct_surf = gen.correct_surface(True)
         incorrect_surf = gen.correct_surface(False)
@@ -562,7 +561,7 @@ class Game:
         self.SCREEN.fill(BLUE)
 
         # blit response
-        self.SCREEN.blit(gen.text_surface(self.cur_block.response), (DISPLAY_RES[0] / 2 - BOARD_SIZE[0] / 2, 0))
+        self.SCREEN.blit(gen.text_surface(self.cur_block.response), (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, 0))
 
         # blit markers
         self.SCREEN.blit(correct_surf, (main_center_loc[0] - 100, main_center_loc[1] + 100))
@@ -610,13 +609,13 @@ class Game:
                 active_players.append(player)
 
         # width interval dependant on number of active players
-        width_interval = DISPLAY_RES[0] / len(active_players)
+        width_interval = DISPLAY_RES[0] // len(active_players)
 
         # blit all characters
         for i in range(len(active_players)):
 
             # calculate location
-            blit_loc = (((width_interval * i) + width_interval / 2) - active_players[i].char_surface.get_width() / 2,
+            blit_loc = (((width_interval * i) + width_interval // 2) - active_players[i].char_surface.get_width() // 2,
 						DISPLAY_RES[1] - active_players[i].char_surface.get_height())
 
             # blit alpha depending on state
@@ -740,7 +739,7 @@ class Game:
 
     def __set_toasty(self):
 
-        self.toasty_x = random.randrange(0, int(DISPLAY_RES[0] / 180))  # sprite width is 180
+        self.toasty_x = random.randrange(0, int(DISPLAY_RES[0] // 180))  # sprite width is 180
         self.toasty_step = 0
         self.play_toasty = True  # play toasty animation if jeremy
 
@@ -755,7 +754,7 @@ class Game:
     def __ttsx_speak(self, words):
 
         if self.SPEECH_ON:
-            self.speech_popen = subprocess.Popen(["say", str(words).decode('utf-8')])
+            self.speech_popen = subprocess.Popen(["say", str(words)])
 
         self.clear_events_flag = True
         self.clue_read = True

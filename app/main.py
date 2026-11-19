@@ -15,6 +15,13 @@ def main():
 
     timeout = 0
 
+    # GAME SETTINGS (populated by the menu / library setup)
+    lib = None
+    active_players = None
+    sfx_on = True
+    speech_on = True
+    input_type = False
+
     # INITIALIZE ALL IMPORTED PYGAME MODULES
     pygame.mixer.pre_init(44100)
     pygame.init()

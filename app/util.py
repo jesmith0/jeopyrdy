@@ -6,8 +6,7 @@ import player
 import pygame
 import random
 import re
-import urllib
-import urllib2
+import urllib.request
 import wikipedia
 
 # GLOBAL VARIABLES
@@ -78,7 +77,7 @@ def get_img_from_wiki(query, num):
     path = os.path.join(os.getcwd(), constants.TEMP_PATH)
 
     try:
-        print query
+        print(query)
         page = wikipedia.page(query)
 
     except wikipedia.exceptions.DisambiguationError as de:
@@ -87,16 +86,16 @@ def get_img_from_wiki(query, num):
             # use first suggestion
             page = wikipedia.page((str(de).split('\n'))[1])
         except Exception as e:
-            print e
-            print "some other error"
+            print(e)
+            print("some other error")
             return None
 
     except wikipedia.exceptions.PageError as pe:
-        print pe.message
+        print(pe)
         return None
 
     matches = []
-    jpg = re.compile('.*\.jpg')
+    jpg = re.compile(r'.*\.jpg')
 
     for image in page.images:
 
@@ -105,15 +104,15 @@ def get_img_from_wiki(query, num):
 
     if matches:
         try:
-            res = urllib.urlretrieve(matches[0], path + "wiki" + str(num) + ".jpg")
-            print res[0]
+            res = urllib.request.urlretrieve(matches[0], path + "wiki" + str(num) + ".jpg")
+            print(res[0])
             return res[0]
         except Exception as e:
-            print e
-            print "### JEOPARDY ERROR ###"
-            print query
-            print matches
-            print "COULD NOT RETRIEVE IMAGE FROM WIKIPEDIA"
+            print(e)
+            print("### JEOPARDY ERROR ###")
+            print(query)
+            print(matches)
+            print("COULD NOT RETRIEVE IMAGE FROM WIKIPEDIA")
 
     else:
         return None
@@ -124,7 +123,7 @@ def get_resource(text, num):
     path = os.path.join(os.getcwd(), constants.TEMP_PATH)
     url = ''
 
-    img_prog = re.compile('.*<a href=".*\.jpg".*')
+    img_prog = re.compile(r'.*<a href=".*\.jpg".*')
     result = img_prog.match(text)
 
     # check if IMAGE resource tag is present (all j-archive images are jpg)
@@ -133,31 +132,31 @@ def get_resource(text, num):
         # pull url from clue
         split = text.split('>')
         for item in split:
-            trim = re.search('http:\/\/.*\.jpg', item)
+            trim = re.search(r'http:\/\/.*\.jpg', item)
             try:
                 url = trim.group(0)
                 break
             except Exception as e:
-                print e
+                print(e)
                 continue
 
         # url is now ready to be retrieved
 
         try:
             # retrieve url data
-            res = urllib.urlretrieve(url, path + "ja" + str(num) + ".jpg")
+            res = urllib.request.urlretrieve(url, path + "ja" + str(num) + ".jpg")
 
             # ensure content type is image, else resource is not available
             if 'Content-Type: text/html' in str(res[1]): return '404'
 
-            print res[0]
+            print(res[0])
 
             # return image
             return res[0]
 
         except Exception as e:
-            print e
-            print "ERROR OPENING " + str(url)
+            print(e)
+            print("ERROR OPENING " + str(url))
 
             # indicate that resource tag present, but no resource obtained
             return "404"
@@ -165,6 +164,12 @@ def get_resource(text, num):
     # if no resource tag present
     else:
         return None
+
+
+# FETCH A WEB PAGE AS A LIST OF DECODED TEXT LINES
+def fetch_lines(url):
+    with urllib.request.urlopen(url) as page:
+        return [raw.decode("utf-8", "replace") for raw in page.readlines()]
 
 
 # PULL GAME DATA FROM J-ARCHIVE
@@ -183,11 +188,11 @@ def parse_jarchive():
     else:
         game_num = str(random.randint(1, constants.MAX_GAME))
 
-    print game_num
+    print(game_num)
 
     # REDUCE WEBPAGE TO RELEVANT LINES (also sets display window caption)
     # retrieves categories and clues
-    for line in urllib2.urlopen(constants.WEB_ADDR_CLUE + game_num).readlines():
+    for line in fetch_lines(constants.WEB_ADDR_CLUE + game_num):
         if 'class="clue_text">' in line:
             clue.append(line)
             res.append(None)
@@ -197,7 +202,7 @@ def parse_jarchive():
             info.append(line[line.find('id="game_title"><h1>') + 20:line.find('</h1>')].upper())
 
     # retrieves responses
-    for line in urllib2.urlopen(constants.WEB_ADDR_RESP + game_num).readlines():
+    for line in fetch_lines(constants.WEB_ADDR_RESP + game_num):
         if 'class="correct_response">' in line: resp.append(line)
 
     ### FORMAT LIBRARY INFO ###
@@ -262,7 +267,7 @@ def lib_setup():
         parsed_data = parse_jarchive()
         if len(parsed_data[1]) == 61: parse_valid = True
 
-    print "LIBRARY (setup):\tOK"
+    print("LIBRARY (setup):\tOK")
 
     return [gen_lib_object(parsed_data), parsed_data[-1]]
 
@@ -280,7 +285,7 @@ def dtf():
             os.remove(path + 'temp' + str(num) + '.jpg')
             num += 1
         except Exception as e:
-            print e
+            print(e)
             num = -1
 
 
@@ -345,7 +350,7 @@ def init_player_objects(active_players):
 # TODO: Check if unused
 def gamify_list(list):
     gamified_list = [[], []]
-    split_list = [list[:len(list) / 2], list[len(list) / 2:-1]]
+    split_list = [list[:len(list) // 2], list[len(list) // 2:-1]]
 
     i = 0
     for round in split_list:

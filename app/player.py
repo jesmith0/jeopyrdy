@@ -1,4 +1,6 @@
-import pygame, constants, gen
+import pygame
+import constants
+import gen
 
 
 class Player:
