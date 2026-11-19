@@ -1,4 +1,5 @@
 import gen
+import speech
 import util
 from constants import *
 
@@ -21,7 +22,7 @@ class Menu:
         # info state
         self.input_state = bool(buzzers)
         self.sfx_state = True
-        self.speech_state = True
+        self.speech_state = speech.AVAILABLE
         self.music_state = True
         self.new_game = False
         self.check_buzzers = False
@@ -205,7 +206,8 @@ class Menu:
                     # TEXT-TO-SPEECH
                     elif self.cursor_loc == 4:
 
-                        self.speech_state = not self.speech_state
+                        # only toggle if a speech backend is installed
+                        if speech.AVAILABLE: self.speech_state = not self.speech_state
 
                     # PLAY MUSIC
                     elif self.cursor_loc == 5:
@@ -308,7 +310,9 @@ class Menu:
         else:
             sfx_value = "OFF"
 
-        if self.speech_state:
+        if not speech.AVAILABLE:
+            speech_value = "N/A"
+        elif self.speech_state:
             speech_value = "ON"
         else:
             speech_value = "OFF"

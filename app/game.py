@@ -1,7 +1,7 @@
 import random
-import subprocess
 
 import gen
+import speech
 import state
 import util
 from constants import *
@@ -754,7 +754,7 @@ class Game:
     def __ttsx_speak(self, words):
 
         if self.SPEECH_ON:
-            self.speech_popen = subprocess.Popen(["say", str(words)])
+            self.speech_popen = speech.speak(words)
 
         self.clear_events_flag = True
         self.clue_read = True
