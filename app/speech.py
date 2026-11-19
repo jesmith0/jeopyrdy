@@ -7,18 +7,25 @@ import shutil
 import subprocess
 import sys
 
-_WINDOWS_SAPI = (
-    "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; "
-    "Add-Type -AssemblyName System.Speech; "
-    "(New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak([Console]::In.ReadToEnd())"
-)
+def windows_sapi_script(null_output=False):
+    """PowerShell script that speaks stdin via System.Speech.
+
+    null_output synthesizes without an audio device (used by tests on CI runners).
+    """
+    return (
+        "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; "
+        "Add-Type -AssemblyName System.Speech; "
+        "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+        + ("$s.SetOutputToNull(); " if null_output else "")
+        + "$s.Speak([Console]::In.ReadToEnd())"
+    )
 
 
 def _candidates(platform):
     if platform == "darwin":
         return [(["say", "-f", "-"], True)]
     if platform == "win32":
-        return [(["powershell", "-NoProfile", "-Command", _WINDOWS_SAPI], True)]
+        return [(["powershell", "-NoProfile", "-Command", windows_sapi_script()], True)]
     return [
         (["espeak-ng", "--stdin"], True),
         (["espeak", "--stdin"], True),
