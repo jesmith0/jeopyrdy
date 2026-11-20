@@ -3,9 +3,11 @@
 Each backend is (argv, use_stdin). Text goes over stdin where the command
 supports it so clue text can never be mistaken for a command-line option.
 """
+
 import shutil
 import subprocess
 import sys
+
 
 def windows_sapi_script(null_output=False):
     """PowerShell script that speaks stdin via System.Speech.
@@ -59,13 +61,11 @@ def speak(text, backend=None):
 
     try:
         if use_stdin:
-            proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
+            proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             proc.stdin.write(text.encode("utf-8"))
             proc.stdin.close()
         else:
-            proc = subprocess.Popen([*argv, text.lstrip("-")], stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL)
+            proc = subprocess.Popen([*argv, text.lstrip("-")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError as e:
         print("text-to-speech failed: " + str(e))
         return None

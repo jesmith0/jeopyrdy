@@ -3,8 +3,16 @@ import pygame.gfxdraw
 from constants import *
 
 
-def text_surface(text, max_width=BOARD_SIZE[0], max_height=BOARD_SIZE[1], font_size=40, color=WHITE,
-                 font_fam="helvetica", color_key=BLUE, shadow=True):
+def text_surface(
+    text,
+    max_width=BOARD_SIZE[0],
+    max_height=BOARD_SIZE[1],
+    font_size=40,
+    color=WHITE,
+    font_fam="helvetica",
+    color_key=BLUE,
+    shadow=True,
+):
     # encode data as string
     text = str(text)
 
@@ -29,27 +37,24 @@ def text_surface(text, max_width=BOARD_SIZE[0], max_height=BOARD_SIZE[1], font_s
         font = DIGITAL
         padding = font_size
 
-    line_list = ['']
+    line_list = [""]
     line_len = 0
 
     # split text into list of words
     word_list = text.split()
 
     for word in word_list:
-
         # if first word on line
-        if line_list[-1] == '':
-
+        if line_list[-1] == "":
             line_list[-1] += word
             line_len += font[font_size].size(word)[0]
 
         else:
-
-            word_size = font[font_size].size(' ' + word)
+            word_size = font[font_size].size(" " + word)
             line_len += word_size[0]
 
             if line_len <= max_width:
-                line_list[-1] += ' ' + word
+                line_list[-1] += " " + word
                 line_len += word_size[0]
             else:
                 line_list.append(word)
@@ -58,13 +63,13 @@ def text_surface(text, max_width=BOARD_SIZE[0], max_height=BOARD_SIZE[1], font_s
     # blit each line to a single surface
     i = 0
     for line in line_list:
-
         # blit locations
         x_loc = max_width // 2 - font[font_size].size(line)[0] // 2
         y_loc = max_height // 2 - (len(line_list) * padding) // 2 + i * padding
 
         # render text
-        if shadow: text_surf.blit(font[font_size].render(line, 1, BLACK), (x_loc + 2, y_loc + 2))
+        if shadow:
+            text_surf.blit(font[font_size].render(line, 1, BLACK), (x_loc + 2, y_loc + 2))
         text_surf.blit(font[font_size].render(line, 1, color), (x_loc, y_loc))
 
         # next line
@@ -80,7 +85,8 @@ def menu_item(option, value, active):
     option_surf_bg = font.render(option, 1, BLACK)
 
     # all renders fonts underlined
-    if active: font.set_underline(True)
+    if active:
+        font.set_underline(True)
 
     value_surf = font.render(value, 1, WHITE)
     value_surf_bg = font.render(value, 1, BLACK)
@@ -137,7 +143,6 @@ def cursor_surface(width=BOARD_SIZE[0] // 6, height=BOARD_SIZE[1] // 6, color=WH
 
     # draw player indicator
     if text:
-
         text_surf = HELVETICA[20].render(text, True, BLUE)
         text_size = text_surf.get_size()
 
@@ -184,7 +189,6 @@ def value_surfaces():
 
     # for each set of values
     for value_set in POINT_VALUES:
-
         value_surfs.append([])
 
         # for each value in value set

@@ -49,7 +49,6 @@ def main():
 
     # GAME LOOP
     while menu_active or game_active:
-
         # CREATE MENU/GAME OBJECTS
         if menu_active and not menu:
             menu = m.Menu(screen, theme_channel, buzzers)
@@ -88,7 +87,6 @@ def main():
         if timeout <= 2000:
             timeout += passed_time
         else:
-
             # recheck buzzers, update menu
             if menu_active:
                 if buzzers:
@@ -110,7 +108,6 @@ def main():
 
         # GET EVENTS FROM QUEUE
         for event in pygame.event.get():
-
             # final jeopardy over
             if event.type == constants.END_FJ_EVENT:
                 game.state.fj_timeout = True
@@ -118,12 +115,10 @@ def main():
             # exit from pygame: Escape, or a quit request (window close button,
             # Ctrl+C or SIGTERM, which SDL delivers as a QUIT event)
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-
                 game_active = False
                 menu_active = False
 
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
-
                 game_set = False
                 game_active = False
                 menu_active = True
@@ -133,16 +128,13 @@ def main():
 
             # jump to final jeopardy
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
-
                 game.state.set_final_jeopardy()
                 game.cur_round = 2
                 game.force_update_round()
 
             # check for button down
             elif event.type == pygame.KEYDOWN or event.type == pygame.JOYBUTTONDOWN:
-
                 if game and game_active:
-
                     # update game object
                     game_active = game.update(util.gamify_input(event), event)
 
@@ -156,7 +148,6 @@ def main():
                         break
 
                 elif menu_active:
-
                     # update menu object
                     menu_ret = menu.update(util.gamify_input(event))
 

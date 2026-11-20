@@ -4,6 +4,7 @@ Uses a synthetic clue library (no network) and replaces what a person would
 otherwise have to check by playing: state transitions, scoring, round changes,
 Daily Doubles, Final Jeopardy and the end screen.
 """
+
 import types
 
 import pygame
@@ -77,8 +78,9 @@ def driver(monkeypatch):
     # timeouts sleep for a second for dramatic effect; skip that in tests
     monkeypatch.setattr(state.time, "sleep", lambda _: None)
 
-    game = g.Game(pygame.display.get_surface(), make_library(), [1, 2, -1, -1],
-                  sfx_on=False, speech_on=False, input_type=False)
+    game = g.Game(
+        pygame.display.get_surface(), make_library(), [1, 2, -1, -1], sfx_on=False, speech_on=False, input_type=False
+    )
 
     # daily doubles are random; clear them so tests place their own
     for rnd in game.LIB[:2]:

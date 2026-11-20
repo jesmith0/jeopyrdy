@@ -4,7 +4,6 @@ import gen
 
 
 class Player:
-
     def __init__(self, order, num):
 
         self.order = order  # order in player list
@@ -35,8 +34,9 @@ class Player:
 
         # load sound clips
         self.correct_sound = None
-        self.incorrect_sound = pygame.mixer.Sound(
-            constants.MUSIC_PATH + "wrong" + str(num) + ".ogg") if num > 0 else None
+        self.incorrect_sound = (
+            pygame.mixer.Sound(constants.MUSIC_PATH + "wrong" + str(num) + ".ogg") if num > 0 else None
+        )
 
         # blit initial score
         self.add_to_score(0)
@@ -106,13 +106,15 @@ class Player:
     # ADD TO PLAYER BET, UPDATE SURFACE
     def add_to_bet(self):
 
-        if (self.cur_bet + 100) <= self.score: self.cur_bet += 100
+        if (self.cur_bet + 100) <= self.score:
+            self.cur_bet += 100
         self.__update_char_surface(self.cur_bet)
 
     # SUB FROM PLAYER SCORE, UPDATE SURFACE
     def sub_from_bet(self):
 
-        if (self.cur_bet - 100) >= 0: self.cur_bet -= 100
+        if (self.cur_bet - 100) >= 0:
+            self.cur_bet -= 100
         self.__update_char_surface(self.cur_bet)
 
     # NEGATES POINTS AND CALLS add_to_score
@@ -140,5 +142,14 @@ class Player:
         self.char_surface.fill(constants.DARK_BLUE)
         self.char_surface.blit(self.blank_char_surface, (0, 0))
         self.char_surface.blit(
-            gen.text_surface(value, self.char_surface.get_width(), self.char_surface.get_height(), 35, color, "digital",
-                             constants.BLUE), (0, 71))
+            gen.text_surface(
+                value,
+                self.char_surface.get_width(),
+                self.char_surface.get_height(),
+                35,
+                color,
+                "digital",
+                constants.BLUE,
+            ),
+            (0, 71),
+        )

@@ -4,6 +4,7 @@ Run weekly by .github/workflows/live.yml so changes to j-archive's markup show
 up as a failed scheduled run instead of a game that silently stops loading.
 The offline parser tests (test_parser.py) assume the markup checked here.
 """
+
 import os
 
 import pytest
@@ -11,13 +12,16 @@ import pytest
 import constants
 import util
 
-pytestmark = pytest.mark.skipif(os.environ.get("JEOPYRDY_LIVE_TESTS") != "1",
-                                reason="set JEOPYRDY_LIVE_TESTS=1 to run against j-archive.com")
+pytestmark = pytest.mark.skipif(
+    os.environ.get("JEOPYRDY_LIVE_TESTS") != "1", reason="set JEOPYRDY_LIVE_TESTS=1 to run against j-archive.com"
+)
 
 
 def fetch(game_num):
-    return util.parse_game(util.fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)),
-                           util.fetch_lines(constants.WEB_ADDR_RESP + str(game_num)))
+    return util.parse_game(
+        util.fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)),
+        util.fetch_lines(constants.WEB_ADDR_RESP + str(game_num)),
+    )
 
 
 def test_complete_game_still_parses():

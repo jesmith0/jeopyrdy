@@ -4,6 +4,7 @@ Each test runs app/main.py's main() in a subprocess, so a broken quit path
 shows up as a timeout instead of hanging the test run, and pygame.quit()
 doesn't tear down the display the other tests share.
 """
+
 import os
 import signal
 import subprocess
@@ -45,8 +46,9 @@ TIMEOUT = 60
 def start(post_event=None):
     env = dict(os.environ, SDL_VIDEODRIVER="dummy", SDL_AUDIODRIVER="dummy")
     code = RUNNER.format(app_dir=str(APP_DIR), post_event=post_event)
-    return subprocess.Popen([sys.executable, "-c", code], env=env, text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    return subprocess.Popen(
+        [sys.executable, "-c", code], env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
 
 
 def finish(proc):

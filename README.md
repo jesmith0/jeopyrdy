@@ -21,6 +21,7 @@ Text-to-speech uses the system speech command: `say` on macOS, PowerShell's buil
 ```
 pip install pytest ruff
 ruff check .
+ruff format --check .   # or `ruff format .` to fix
 pytest
 ```
 

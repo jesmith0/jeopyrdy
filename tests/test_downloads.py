@@ -1,4 +1,5 @@
 """Clue image downloads, tested offline with a fake urlopen."""
+
 import email.message
 import io
 import types
@@ -10,10 +11,14 @@ import constants
 import util
 
 # real clue_text snippets from j-archive game 6500
-HTTPS_CLUE = ('A 40-foot Paris <a href="https://www.j-archive.com/media/2019-12-18_J_06.jpg" '
-              'target="_blank">sculpture</a> is called Le Pouce')
-HTTP_CLUE = ('Check out the 130-foot <a href="http://www.j-archive.com/media/2019-12-18_J_07.jpg" '
-             'target="_blank">Rain Vortex</a> at Changi Airport')
+HTTPS_CLUE = (
+    'A 40-foot Paris <a href="https://www.j-archive.com/media/2019-12-18_J_06.jpg" '
+    'target="_blank">sculpture</a> is called Le Pouce'
+)
+HTTP_CLUE = (
+    'Check out the 130-foot <a href="http://www.j-archive.com/media/2019-12-18_J_07.jpg" '
+    'target="_blank">Rain Vortex</a> at Changi Airport'
+)
 PLAIN_CLUE = "This Canadian hosted Jeopardy! for 37 seasons"
 
 JPEG = b"\xff\xd8\xff\xe0fake-jpeg"
@@ -94,11 +99,13 @@ def test_downloads_send_user_agent_and_timeout(web, monkeypatch):
 def test_wikipedia_fallback_picks_first_photo(web, monkeypatch):
     # real url shape: wikimedia appends tracking query strings
     utm = "?utm_source=en.wikipedia.org&utm_campaign=imageinfo&utm_content=original"
-    page = types.SimpleNamespace(images=[
-        "https://upload.wikimedia.org/wikipedia/commons/a/aa/Icon.svg" + utm,
-        "https://upload.wikimedia.org/wikipedia/en/c/cd/Hogan%27s_Heroes_logo.png" + utm,
-        "https://upload.wikimedia.org/wikipedia/commons/b/bb/Cast.jpg" + utm,
-    ])
+    page = types.SimpleNamespace(
+        images=[
+            "https://upload.wikimedia.org/wikipedia/commons/a/aa/Icon.svg" + utm,
+            "https://upload.wikimedia.org/wikipedia/en/c/cd/Hogan%27s_Heroes_logo.png" + utm,
+            "https://upload.wikimedia.org/wikipedia/commons/b/bb/Cast.jpg" + utm,
+        ]
+    )
     monkeypatch.setattr(util.wikipedia, "page", lambda query, auto_suggest: page)
     web.pages[page.images[1]] = (200, "image/png", b"\x89PNG fake")
 

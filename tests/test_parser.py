@@ -1,4 +1,5 @@
 """Offline tests for j-archive parsing and game setup (#23)."""
+
 import pytest
 
 import constants
@@ -13,6 +14,7 @@ def parse(**kwargs):
 
 
 # --- parsing ---------------------------------------------------------------
+
 
 def test_complete_game_parses_all_parts():
     game = parse(title="Show #9157 - Tuesday, September 10, 2024")
@@ -61,8 +63,8 @@ def test_markup_is_scrubbed():
         },
         response_overrides={
             # real responses page: contestant chatter before the response
-            "J_1_1": '(Player A: What is a... tittle?)<br />(Player B: A chuckle?)<br /><br />'
-                     '<em class="correct_response">giggling</em>',
+            "J_1_1": "(Player A: What is a... tittle?)<br />(Player B: A chuckle?)<br /><br />"
+            '<em class="correct_response">giggling</em>',
             "J_2_1": '<em class="correct_response"><i>The Raven</i></em>',
         },
     )
@@ -94,6 +96,7 @@ def test_empty_page_is_incomplete():
 
 # --- lib_setup retries -------------------------------------------------------
 
+
 class FakeArchive:
     """Serves generated pages per game id; ids not listed raise a network error."""
 
@@ -121,6 +124,7 @@ def archive(monkeypatch):
         resources = []
         monkeypatch.setattr(util, "fetch_resources", lambda game: resources.append(game) or [None] * 61)
         return fake, resources
+
     return install
 
 
@@ -147,8 +151,7 @@ def test_setup_gives_up_instead_of_looping_forever(archive):
 
 def test_forced_incomplete_game_fails_fast(archive):
     # e.g. FORCE_GAME = 6500 (59 of 61 clues) used to hang setup forever
-    fake, resources = archive(games={6500: game_pages(unrevealed=("J_1_1", "J_2_2"))}, picks=[],
-                              forced=6500)
+    fake, resources = archive(games={6500: game_pages(unrevealed=("J_1_1", "J_2_2"))}, picks=[], forced=6500)
 
     with pytest.raises(util.LibraryError, match="6500"):
         util.lib_setup()

@@ -5,8 +5,14 @@ import player
 import state
 
 ALL_STATES = [
-    constants.MAIN_STATE, constants.BET_STATE, constants.BUZZED_STATE, constants.SHOW_CLUE_STATE,
-    constants.SHOW_RESP_STATE, constants.FINAL_BET_STATE, constants.FINAL_CHECK_STATE, constants.END_STATE,
+    constants.MAIN_STATE,
+    constants.BET_STATE,
+    constants.BUZZED_STATE,
+    constants.SHOW_CLUE_STATE,
+    constants.SHOW_RESP_STATE,
+    constants.FINAL_BET_STATE,
+    constants.FINAL_CHECK_STATE,
+    constants.END_STATE,
 ]
 
 

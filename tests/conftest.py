@@ -1,4 +1,5 @@
 """Run the game modules headless, from the app/ directory they expect."""
+
 import os
 import sys
 from pathlib import Path

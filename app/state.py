@@ -4,7 +4,6 @@ from constants import *
 
 
 class State:
-
     def __init__(self, sfx_on):
 
         self.cur_state = MAIN_STATE
@@ -47,14 +46,14 @@ class State:
         check_down = False
 
         # RESET CLOCK
-        if self.init: self.reset_clock()
+        if self.init:
+            self.reset_clock()
 
         # CHECK IF STATE TIMED OUT
         timedout = self.__check_timeout(skip)
 
         # ONLY UPDATE ON NON-NULL INPUT
         if input or timedout:
-
             # skip if timed out
             if input:
                 active_down = int(input[self.active_player][0]) and not speaking
@@ -63,7 +62,6 @@ class State:
 
             # MAIN SCREEN STATE LOGIC
             if self.if_state(MAIN_STATE) and active_down and not cur_block.clue_completed():
-
                 # mark clue as seen
                 cur_block.see_clue()
 
@@ -74,10 +72,10 @@ class State:
 
                 # check daily double
                 if cur_block.is_dailydouble():
-
                     self.cur_state = BET_STATE
                     self.dailydouble = True
-                    if self.SFX_ON: DAILYDOUBLE_SOUND.play()
+                    if self.SFX_ON:
+                        DAILYDOUBLE_SOUND.play()
 
                 else:
                     self.cur_state = SHOW_CLUE_STATE
@@ -87,7 +85,6 @@ class State:
 
             # BETTING SCREEN STATE LOGIC
             elif self.if_state(BET_STATE) and active_down:
-
                 self.cur_state = BUZZED_STATE
 
                 # automatically buzz active player
@@ -98,11 +95,11 @@ class State:
 
             # DISPLAY CLUE SCREEN STATE LOGIC
             elif self.if_state(SHOW_CLUE_STATE) and (timedout or (not self.final and buzzed_down)):
-
                 if not timedout and not self.final:
                     self.cur_state = BUZZED_STATE
                 else:
-                    if self.SFX_ON: TIMEOUT_SOUND.play()
+                    if self.SFX_ON:
+                        TIMEOUT_SOUND.play()
                     time.sleep(1)
                     self.clue_timeout = True
 
@@ -116,10 +113,9 @@ class State:
 
             # BUZZED IN SCREEN STATE LOGIC
             elif self.if_state(BUZZED_STATE) and (timedout or (self.game_clock >= DELAY and buzzed_down)):
-
                 if timedout:
-
-                    if self.SFX_ON: TIMEOUT_SOUND.play()
+                    if self.SFX_ON:
+                        TIMEOUT_SOUND.play()
                     time.sleep(1)
                     self.buzzed_timeout = True
 
@@ -130,9 +126,10 @@ class State:
 
             # DISPLAY RESPONSE SCREEN STATE LOGIC
             elif self.if_state(SHOW_RESP_STATE) and (
-                    (not timedout and check_down) or (self.clue_timeout and active_down) or (
-                    self.buzzed_timeout and buzzed_down)):
-
+                (not timedout and check_down)
+                or (self.clue_timeout and active_down)
+                or (self.buzzed_timeout and buzzed_down)
+            ):
                 if self.final:
                     self.cur_state = FINAL_CHECK_STATE
                 else:
@@ -145,7 +142,6 @@ class State:
 
             # FINAL BET SCREEN STATE LOGIC
             elif self.if_state(FINAL_BET_STATE) and self.all_bets_set:
-
                 self.cur_state = SHOW_CLUE_STATE
                 self.all_bets_set = False
 
@@ -154,7 +150,6 @@ class State:
 
             # FINAL CHECK SCREEN STATE LOGIC
             elif self.if_state(FINAL_CHECK_STATE) and self.all_checks_set:
-
                 self.cur_state = END_STATE
                 self.all_checks_set = False
 
@@ -163,7 +158,6 @@ class State:
 
             # END SCREEN STATE LOGIC
             elif self.if_state(END_STATE) and active_down:
-
                 # initiates creation of new game object
                 self.new_game = True
                 return
@@ -180,9 +174,11 @@ class State:
         # oh god im so ashamed
         elif self.if_state(BUZZED_STATE):
             if self.dailydouble:
-                if (self.game_clock >= CLUE_TIMEOUT): return True
+                if self.game_clock >= CLUE_TIMEOUT:
+                    return True
             else:
-                if (self.game_clock >= BUZZ_TIMEOUT): return True
+                if self.game_clock >= BUZZ_TIMEOUT:
+                    return True
 
         elif self.if_state(BUZZED_STATE) and (self.game_clock >= BUZZ_TIMEOUT):
             return True
