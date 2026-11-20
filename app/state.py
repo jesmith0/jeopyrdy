@@ -206,16 +206,16 @@ class State:
         self.game_clock = 0
 
     def __str__(self):
+        return STATE_NAMES.get(self.cur_state, "UNKNOWN STATE (" + str(self.cur_state) + ")")
 
-        if self.if_state(MAIN_STATE):
-            return "MAIN STATE"
-        elif self.if_state(BET_STATE):
-            return "BET STATE"
-        elif self.if_state(BUZZED_STATE):
-            return "BUZZED STATE"
-        elif self.if_state(SHOW_CLUE_STATE):
-            return "SHOW CLUE STATE"
-        elif self.if_state(SHOW_RESP_STATE):
-            return "SHOW RESPONSE STATE"
-        elif self.if_state(CHECK_STATE):
-            return "CHECK RESPONSE STATE"
+
+STATE_NAMES = {
+    MAIN_STATE: "MAIN STATE",
+    BET_STATE: "BET STATE",
+    BUZZED_STATE: "BUZZED STATE",
+    SHOW_CLUE_STATE: "SHOW CLUE STATE",
+    SHOW_RESP_STATE: "SHOW RESPONSE STATE",
+    FINAL_BET_STATE: "FINAL BET STATE",
+    FINAL_CHECK_STATE: "FINAL CHECK STATE",
+    END_STATE: "END STATE",
+}
