@@ -114,7 +114,9 @@ class FakeArchive:
 
 
 @pytest.fixture
-def archive(monkeypatch):
+def archive(monkeypatch, tmp_path):
+    monkeypatch.setattr(constants, "TEMP_PATH", str(tmp_path))
+
     def install(games, picks, forced=None):
         fake = FakeArchive(games)
         monkeypatch.setattr(util, "fetch_lines", fake)
@@ -171,3 +173,12 @@ def test_resources_fetched_per_clue_with_wikipedia_fallback(monkeypatch):
     assert res[1] == "wiki.jpg"
     assert looked_up == [(response_text("J_2_1"), 1)]
     assert res.count(None) == 60
+
+
+def test_setup_clears_previous_games_images(archive, tmp_path):
+    (tmp_path / "wiki7.jpg").write_bytes(b"old game")
+    archive(games={1: game_pages()}, picks=[1])
+
+    util.lib_setup()
+
+    assert not (tmp_path / "wiki7.jpg").exists()

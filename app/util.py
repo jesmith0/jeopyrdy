@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import platform
 import random
 import re
 import urllib.parse
@@ -303,6 +302,10 @@ MAX_SETUP_ATTEMPTS = 10
 
 
 def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
+    # images from the previous game are already loaded into memory; also
+    # covers games abandoned with Backspace, which never reach the exit cleanup
+    clear_temp_files()
+
     for _ in range(max_attempts):
         game_num = constants.FORCE_GAME or random.randint(1, constants.MAX_GAME)
 
@@ -332,21 +335,28 @@ def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
     raise LibraryError("no complete game found in " + str(max_attempts) + " attempts")
 
 
-# DELETE TEMPORARY FILES (MEDIA RESOURCES)
-def dtf():
-    if "Windows" in platform.system():
-        path = "temp\\"
-    else:
-        path = "temp/"
+# DELETE DOWNLOADED CLUE IMAGES (ja<N>.jpg FROM J-ARCHIVE, wiki<N>.<ext> FROM WIKIPEDIA)
+# Only files matching those names are removed, never anything else in the folder.
+TEMP_FILE = re.compile(r"^(ja|wiki)\d+\.(jpe?g|png|gif)$", re.IGNORECASE)
 
-    num = 0
-    while num >= 0:
-        try:
-            os.remove(path + "temp" + str(num) + ".jpg")
-            num += 1
-        except Exception as e:
-            log.debug("temp cleanup stopped: %s", e)
-            num = -1
+
+def clear_temp_files():
+    removed = 0
+    try:
+        entries = list(os.scandir(constants.TEMP_PATH))
+    except FileNotFoundError:
+        return 0
+
+    for entry in entries:
+        if entry.is_file() and TEMP_FILE.match(entry.name):
+            try:
+                os.remove(entry.path)
+                removed += 1
+            except OSError as e:
+                log.warning("could not delete %s: %s", entry.path, e)
+
+    log.debug("deleted %d temp files", removed)
+    return removed
 
 
 # CREATE PYGAME JOYSTICK OBJECT OF USB BUZZERS
