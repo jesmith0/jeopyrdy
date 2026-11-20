@@ -1,10 +1,10 @@
 """Offline tests for j-archive parsing and game setup (#23)."""
 
 import pytest
+from jarchive_pages import all_clue_ids, clue_text, game_pages, response_text
 
 import constants
 import util
-from jarchive_pages import all_clue_ids, clue_text, game_pages, response_text
 
 MEDIA_URL = "https://www.j-archive.com/media/2024-09-10_J_02.jpg"
 

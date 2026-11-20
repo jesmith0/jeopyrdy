@@ -1,5 +1,6 @@
-import constants
 import pygame
+
+import constants
 import gen
 
 

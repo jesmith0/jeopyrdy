@@ -1,6 +1,20 @@
 import time
 
-from constants import *
+from constants import (
+    BET_STATE,
+    BUZZ_TIMEOUT,
+    BUZZED_STATE,
+    CLUE_TIMEOUT,
+    DAILYDOUBLE_SOUND,
+    DELAY,
+    END_STATE,
+    FINAL_BET_STATE,
+    FINAL_CHECK_STATE,
+    MAIN_STATE,
+    SHOW_CLUE_STATE,
+    SHOW_RESP_STATE,
+    TIMEOUT_SOUND,
+)
 
 
 class State:
