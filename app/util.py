@@ -1,3 +1,4 @@
+import logging
 import os
 import platform
 import random
@@ -11,6 +12,8 @@ import wikipedia
 import constants
 import library
 import player
+
+log = logging.getLogger(__name__)
 
 # GLOBAL VARIABLES
 image_count = 0
@@ -84,7 +87,7 @@ def scrub_text(text):
 
 def get_img_from_wiki(query, num):
     try:
-        print(query)
+        log.debug("wikipedia lookup: %s", query)
         page = wiki_page(query)
 
     except wikipedia.exceptions.DisambiguationError as de:
@@ -92,12 +95,11 @@ def get_img_from_wiki(query, num):
             # use first suggestion
             page = wiki_page((str(de).split("\n"))[1])
         except Exception as e:
-            print(e)
-            print("some other error")
+            log.warning("wikipedia lookup failed for %r: %s", query, e)
             return None
 
-    except wikipedia.exceptions.PageError as pe:
-        print(pe)
+    except wikipedia.exceptions.PageError:
+        log.info("no wikipedia page for %r", query)
         return None
 
     # first photo-like image on the page (skips svg icons and logos)
@@ -138,17 +140,16 @@ def download(url, dest):
     try:
         with urllib.request.urlopen(request, timeout=constants.HTTP_TIMEOUT) as response:
             if not response.headers.get_content_type().startswith("image/"):
-                print("NOT AN IMAGE: " + url)
+                log.warning("not an image: %s", url)
                 return None
             data = response.read()
     except (OSError, ValueError) as e:  # URLError/HTTPError/timeouts are OSErrors
-        print(e)
-        print("ERROR OPENING " + url)
+        log.info("could not download %s: %s", url, e)
         return None
 
     with open(dest, "wb") as f:
         f.write(data)
-    print(dest)
+    log.debug("saved %s", dest)
     return dest
 
 
@@ -210,7 +211,7 @@ def parse_game(clue_lines, resp_lines):
 
 # PULL GAME DATA FROM J-ARCHIVE
 def parse_jarchive(game_num):
-    print(game_num)
+    log.info("fetching game %s", game_num)
     return parse_game(
         fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)), fetch_lines(constants.WEB_ADDR_RESP + str(game_num))
     )
@@ -277,25 +278,21 @@ def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
         try:
             game = parse_jarchive(game_num)
         except OSError as e:  # network errors, timeouts
-            print("COULD NOT FETCH GAME " + str(game_num) + ": " + str(e))
+            log.warning("could not fetch game %s: %s", game_num, e)
             continue
 
         if game.is_complete:
             # only download images once the game is known to be usable
             res = fetch_resources(game)
-            print("LIBRARY (setup):\tOK")
+            log.info("loaded %s", game.info[0] if game.info else "game " + str(game_num))
             return [gen_lib_object([game.categories, game.clues, game.responses, res]), game.info]
 
-        print(
-            "GAME "
-            + str(game_num)
-            + " INCOMPLETE: "
-            + str(len(game.clues))
-            + " clues, "
-            + str(len(game.responses))
-            + " responses, "
-            + str(len(game.categories))
-            + " categories"
+        log.info(
+            "game %s incomplete: %d clues, %d responses, %d categories",
+            game_num,
+            len(game.clues),
+            len(game.responses),
+            len(game.categories),
         )
 
         if constants.FORCE_GAME:
@@ -317,7 +314,7 @@ def dtf():
             os.remove(path + "temp" + str(num) + ".jpg")
             num += 1
         except Exception as e:
-            print(e)
+            log.debug("temp cleanup stopped: %s", e)
             num = -1
 
 
