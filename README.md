@@ -25,9 +25,9 @@ ruff format --check .   # or `ruff format .` to fix
 pytest
 ```
 
-Tests run offline. To also check that j-archive's live pages still parse (CI does this weekly):
+Tests run offline. To also check that j-archive's pages still parse and Wikipedia's API still returns images (CI does this weekly):
 ```
-JEOPYRDY_LIVE_TESTS=1 pytest tests/test_live_jarchive.py
+JEOPYRDY_LIVE_TESTS=1 pytest tests/test_live_jarchive.py tests/test_live_wikipedia.py
 ```
 
 ## Build

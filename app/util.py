@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import platform
@@ -7,7 +8,6 @@ import urllib.parse
 import urllib.request
 
 import pygame
-import wikipedia
 
 import constants
 import library
@@ -21,10 +21,11 @@ image_count = 0
 # image link inside a j-archive clue (served over http or https)
 JARCHIVE_IMAGE = re.compile(r'<a href="(https?://[^"]+\.jpg)"', re.IGNORECASE)
 
-# image types pygame can load that Wikipedia pages commonly use
-WIKI_IMAGE_EXTS = (".jpg", ".jpeg", ".png")
+# image types pygame can load that Wikipedia thumbnails use (svg thumbnails are png)
+WIKI_IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".gif")
 
-wikipedia.set_user_agent(constants.USER_AGENT)
+WIKI_API = "https://en.wikipedia.org/w/api.php"
+WIKI_THUMB_SIZE = 400  # px; images are drawn 200px high
 
 
 # CONVERT PYGAME EVENT TO USABLE GAME INPUT
@@ -86,40 +87,59 @@ def scrub_text(text):
 
 
 def get_img_from_wiki(query, num):
-    try:
-        log.debug("wikipedia lookup: %s", query)
-        page = wiki_page(query)
-
-    except wikipedia.exceptions.DisambiguationError as de:
-        try:
-            # use first suggestion
-            page = wiki_page((str(de).split("\n"))[1])
-        except Exception as e:
-            log.warning("wikipedia lookup failed for %r: %s", query, e)
-            return None
-
-    except wikipedia.exceptions.PageError:
-        log.info("no wikipedia page for %r", query)
+    url = wiki_image_url(query)
+    if not url:
+        log.info("no wikipedia image for %r", query)
         return None
 
-    # first photo-like image on the page (skips svg icons and logos)
-    for image in page.images:
-        # image urls carry tracking query strings (?utm_source=...)
-        ext = os.path.splitext(urllib.parse.urlsplit(image).path)[1].lower()
-        if ext in WIKI_IMAGE_EXTS:
-            return download(image, os.path.join(constants.TEMP_PATH, "wiki" + str(num) + ext))
+    # thumbnail urls carry tracking query strings (?utm_source=...)
+    ext = os.path.splitext(urllib.parse.urlsplit(url).path)[1].lower()
+    if ext not in WIKI_IMAGE_EXTS:
+        log.info("unsupported wikipedia image type for %r: %s", query, url)
+        return None
+
+    return download(url, os.path.join(constants.TEMP_PATH, "wiki" + str(num) + ext))
+
+
+# QUERY THE MEDIAWIKI API FOR PAGES WITH THEIR LEAD IMAGE THUMBNAIL
+def wiki_query(**params):
+    params = {
+        "action": "query",
+        "format": "json",
+        "formatversion": "2",
+        "redirects": "1",
+        "prop": "pageimages|pageprops",
+        "piprop": "thumbnail",
+        "pithumbsize": str(WIKI_THUMB_SIZE),
+        "ppprop": "disambiguation",
+        **params,
+    }
+    data = fetch_json(WIKI_API + "?" + urllib.parse.urlencode(params))
+    pages = data.get("query", {}).get("pages", [])
+
+    # search results carry their rank in "index"
+    return sorted(pages, key=lambda page: page.get("index", 0))
+
+
+def is_disambiguation(page):
+    return "disambiguation" in page.get("pageprops", {})
+
+
+# LEAD IMAGE THUMBNAIL URL FOR THE PAGE MATCHING query, OR None
+# The exact title (following redirects) wins; if that page exists, use its
+# lead image or nothing, since a search could land on a different topic. Only
+# when there's no such page, or it's a disambiguation page, take the first
+# search result that has an image.
+def wiki_image_url(query):
+    for page in wiki_query(titles=query):
+        if not page.get("missing") and not page.get("invalid") and not is_disambiguation(page):
+            return page.get("thumbnail", {}).get("source")
+
+    for page in wiki_query(generator="search", gsrsearch=query, gsrlimit="5"):
+        if not is_disambiguation(page) and "thumbnail" in page:
+            return page["thumbnail"]["source"]
 
     return None
-
-
-# LOOK UP A WIKIPEDIA PAGE BY TITLE
-# The package's auto-suggest "corrects" exact titles ("Julianne Moore" ->
-# "julianne more"), so only fall back to it when the exact title isn't found.
-def wiki_page(query):
-    try:
-        return wikipedia.page(query, auto_suggest=False)
-    except wikipedia.exceptions.PageError:
-        return wikipedia.page(query, auto_suggest=True)
 
 
 # PULL MEDIA RESOURCES FROM J-ARCHIVE
@@ -151,6 +171,17 @@ def download(url, dest):
         f.write(data)
     log.debug("saved %s", dest)
     return dest
+
+
+# FETCH JSON FROM AN API; RETURNS {} ON ANY FAILURE
+def fetch_json(url):
+    request = urllib.request.Request(url, headers={"User-Agent": constants.USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=constants.HTTP_TIMEOUT) as response:
+            return json.load(response)
+    except (OSError, ValueError) as e:  # network errors, bad JSON
+        log.warning("request failed: %s: %s", url, e)
+        return {}
 
 
 # FETCH A WEB PAGE AS A LIST OF DECODED TEXT LINES
