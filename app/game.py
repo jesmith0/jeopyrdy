@@ -1,10 +1,36 @@
 import random
 
+import pygame
+
 import gen
 import speech
 import state
 import util
-from constants import *
+from constants import (
+    ALEX_IMAGE,
+    APPLAUSE_SOUND,
+    BET_STATE,
+    BLUE,
+    BOARD_SIZE,
+    BOARDFILL_SOUND,
+    BUZZ_SOUND,
+    BUZZED_STATE,
+    DDBG_IMAGE,
+    DISPLAY_RES,
+    END_FJ_EVENT,
+    END_STATE,
+    FINAL_BET_STATE,
+    FINAL_CHECK_STATE,
+    FINALJEP_SOUND,
+    FJBG_IMAGE,
+    MAIN_STATE,
+    MAINBG_IMAGE,
+    NUM_PLAYERS,
+    POINT_VALUES,
+    SHOW_CLUE_STATE,
+    SHOW_RESP_STATE,
+    WHITE,
+)
 
 
 class Game:

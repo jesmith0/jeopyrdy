@@ -1,10 +1,11 @@
 import sys
 
 import pygame  # FOR GUI
+
 import constants
-import util
-import menu as m  # Menu OBJECT CLASS
 import game as g  # Game OBJECT CLASS
+import menu as m  # Menu OBJECT CLASS
+import util
 
 
 def main():

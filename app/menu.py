@@ -1,7 +1,25 @@
+import pygame
+
 import gen
 import speech
 import util
-from constants import *
+from constants import (
+    ALEX_IMAGE,
+    BLUE,
+    CHARACTERS_IMAGE,
+    CHARSELECT_SOUND,
+    DAILYDOUBLE_SOUND,
+    DISPLAY_RES,
+    HELVETICA,
+    LOGO_IMAGE,
+    MAINBG_IMAGE,
+    NAMES_SOUND_ARR,
+    NUM_SPRITES,
+    RED,
+    THEME_SOUND,
+    WHITE,
+    YELLOW,
+)
 
 
 class Menu:

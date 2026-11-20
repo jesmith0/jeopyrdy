@@ -21,9 +21,7 @@ src = ["app"]
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "UP"]
-# The game modules share constants via `from constants import *`.
-ignore = ["F403", "F405"]
+select = ["E4", "E7", "E9", "F", "UP", "I"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

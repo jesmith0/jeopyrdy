@@ -1,14 +1,16 @@
-import constants
-import library
 import os
 import platform
-import player
-import pygame
 import random
 import re
 import urllib.parse
 import urllib.request
+
+import pygame
 import wikipedia
+
+import constants
+import library
+import player
 
 # GLOBAL VARIABLES
 image_count = 0

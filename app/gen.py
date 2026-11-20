@@ -1,6 +1,22 @@
 import pygame.gfxdraw
 
-from constants import *
+from constants import (
+    BLACK,
+    BLUE,
+    BOARD_SIZE,
+    CHAR_SIZE,
+    CHARACTERS_IMAGE,
+    DARK_BLUE,
+    DIGITAL,
+    GREEN,
+    HELVETICA,
+    KORINNA,
+    ORANGE,
+    POINT_VALUES,
+    TOASTY_IMAGE,
+    WHITE,
+    YELLOW,
+)
 
 
 def text_surface(
