@@ -30,8 +30,9 @@ def response_text(cid):
     return f"Answer {cid}"
 
 
-def game_pages(title="Show #1234 - Monday, January 1, 2024", unrevealed=(), clue_overrides=None,
-               response_overrides=None):
+def game_pages(
+    title="Show #1234 - Monday, January 1, 2024", unrevealed=(), clue_overrides=None, response_overrides=None
+):
     """Return (clue_page_lines, responses_page_lines).
 
     unrevealed: clue ids ("J_1_1", "FJ", ...) that were never shown on air
@@ -68,8 +69,10 @@ def game_pages(title="Show #1234 - Monday, January 1, 2024", unrevealed=(), clue
         ]
 
     def resp_line(cid):
-        return (f'    <td class="clue_text">{response_html(cid)}<br /><br /><table width="100%">'
-                '<tr><td class="right">Player A</td></tr></table></td>')
+        return (
+            f'    <td class="clue_text">{response_html(cid)}<br /><br /><table width="100%">'
+            '<tr><td class="right">Player A</td></tr></table></td>'
+        )
 
     for r, (rnd, name) in enumerate(ROUNDS):
         clue_page.append(f'<div id="{name.lower().replace(" ", "_")}_round"><h2>{name} ROUND</h2>')

@@ -10,9 +10,10 @@ import speech
 @pytest.fixture
 def only_commands(monkeypatch):
     """Pretend only the given commands are installed."""
+
     def install(*names):
-        monkeypatch.setattr(speech.shutil, "which",
-                            lambda cmd: "/usr/bin/" + cmd if cmd in names else None)
+        monkeypatch.setattr(speech.shutil, "which", lambda cmd: "/usr/bin/" + cmd if cmd in names else None)
+
     return install
 
 
@@ -27,13 +28,16 @@ def test_speak_without_backend_returns_none(only_commands, monkeypatch):
     assert speech.speak("This is a clue") is None
 
 
-@pytest.mark.parametrize(("platform", "installed", "expected"), [
-    ("darwin", ["say"], "say"),
-    ("win32", ["powershell"], "powershell"),
-    ("linux", ["espeak-ng", "espeak", "spd-say"], "espeak-ng"),
-    ("linux", ["espeak", "spd-say"], "espeak"),
-    ("linux", ["spd-say"], "spd-say"),
-])
+@pytest.mark.parametrize(
+    ("platform", "installed", "expected"),
+    [
+        ("darwin", ["say"], "say"),
+        ("win32", ["powershell"], "powershell"),
+        ("linux", ["espeak-ng", "espeak", "spd-say"], "espeak-ng"),
+        ("linux", ["espeak", "spd-say"], "espeak"),
+        ("linux", ["spd-say"], "spd-say"),
+    ],
+)
 def test_backend_selection(only_commands, platform, installed, expected):
     only_commands(*installed)
     argv, _ = speech.find_backend(platform)
@@ -103,8 +107,7 @@ def test_real_backend_via_speak(tmp_path):
 def test_silent_variants_never_target_speakers(tmp_path):
     say = silent((["/usr/bin/say", "-f", "-"], True), tmp_path)[0]
     espeak = silent((["/usr/bin/espeak-ng", "--stdin"], True), tmp_path)[0]
-    ps = silent((["C:\\PowerShell.EXE", "-NoProfile", "-Command", speech.windows_sapi_script()], True),
-                tmp_path)[0]
+    ps = silent((["C:\\PowerShell.EXE", "-NoProfile", "-Command", speech.windows_sapi_script()], True), tmp_path)[0]
 
     assert "-o" in say
     assert "-w" in espeak

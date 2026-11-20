@@ -18,7 +18,7 @@ FONT_PATH = os.path.join(RES_DIR, "fonts", "")
 MUSIC_PATH = os.path.join(RES_DIR, "music", "")
 TEMP_PATH = os.path.join(RES_DIR, "temp", "")
 os.makedirs(TEMP_PATH, exist_ok=True)
-	
+
 WEB_ADDR_CLUE = "https://j-archive.com/showgame.php?game_id="
 WEB_ADDR_RESP = "https://j-archive.com/showgameresponses.php?game_id="
 
@@ -95,12 +95,25 @@ CHARSELECT_SOUND = pygame.mixer.Sound(MUSIC_PATH + "charselect.ogg")
 ################
 
 NAMES_SOUND_ARR = []
-for i in range(NUM_SPRITES+1):
-	NAMES_SOUND_ARR.append(pygame.mixer.Sound(MUSIC_PATH + "name" + str(i) + ".ogg"))
+for i in range(NUM_SPRITES + 1):
+    NAMES_SOUND_ARR.append(pygame.mixer.Sound(MUSIC_PATH + "name" + str(i) + ".ogg"))
 
 # character names
 ################
-CHARACTER_NAMES = ["Mystery Man", "Alex Trebek", "Sean Connery", "Burt Reynolds", "French Stewart", "Watson", "Bill Cosby", "Sharon Osbourne", "Keanu Reeves", "Kathy Griffin", "Bjork", "Jesus"]
+CHARACTER_NAMES = [
+    "Mystery Man",
+    "Alex Trebek",
+    "Sean Connery",
+    "Burt Reynolds",
+    "French Stewart",
+    "Watson",
+    "Bill Cosby",
+    "Sharon Osbourne",
+    "Keanu Reeves",
+    "Kathy Griffin",
+    "Bjork",
+    "Jesus",
+]
 ################
 
 # state constants
@@ -130,7 +143,7 @@ HELVETICA = []
 DIGITAL = []
 
 for i in range(1, 65):
-	KORINNA.append(pygame.font.Font(FONT_PATH + "korinna.ttf", i))
-	HELVETICA.append(pygame.font.Font(FONT_PATH + "helvetica.ttf", i))
-	DIGITAL.append(pygame.font.Font(FONT_PATH + "digital.ttf", i))
+    KORINNA.append(pygame.font.Font(FONT_PATH + "korinna.ttf", i))
+    HELVETICA.append(pygame.font.Font(FONT_PATH + "helvetica.ttf", i))
+    DIGITAL.append(pygame.font.Font(FONT_PATH + "digital.ttf", i))
 ################

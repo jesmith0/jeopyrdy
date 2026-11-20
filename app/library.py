@@ -4,7 +4,6 @@ import gen
 
 
 class Block:
-
     def __init__(self, category, clue, response, resource):
 
         self.category = category
@@ -45,7 +44,6 @@ class Block:
 
 
 class Category:
-
     def __init__(self, text):
         # data
         self.text = text
@@ -55,15 +53,21 @@ class Category:
         # state
         self.completed = False
 
-        self.board_surface = gen.text_surface(self.text, constants.BOARD_SIZE[0] // 6 - 20,
-                                              constants.BOARD_SIZE[0] // 6 - 20, 20, constants.YELLOW, "helvetica",
-                                              constants.DARK_BLUE)
+        self.board_surface = gen.text_surface(
+            self.text,
+            constants.BOARD_SIZE[0] // 6 - 20,
+            constants.BOARD_SIZE[0] // 6 - 20,
+            20,
+            constants.YELLOW,
+            "helvetica",
+            constants.DARK_BLUE,
+        )
 
-    def __str__(self): return self.text
+    def __str__(self):
+        return self.text
 
 
 class Clue:
-
     def __init__(self, text, dailydouble=False):
         # data
         self.text = text
@@ -75,11 +79,11 @@ class Clue:
 
     # CALL TO __generate_surface()
 
-    def __str__(self): return self.text
+    def __str__(self):
+        return self.text
 
 
 class Response:
-
     def __init__(self, text):
         # data
         self.text = text
@@ -87,11 +91,11 @@ class Response:
 
     # CALL TO __generate_surface()
 
-    def __str__(self): return self.text
+    def __str__(self):
+        return self.text
 
 
 class Resource:
-
     def __init__(self, res):
 
         # data
@@ -101,7 +105,6 @@ class Resource:
     def __generate_surf(self, res):
 
         if res:
-
             try:
                 return pygame.image.load(res)
             except Exception as e:

@@ -38,10 +38,8 @@ def gamify_input(event):
         button = event.button
 
     for set in map:
-
         if button in set:
             for value in set:
-
                 if button == value:
                     arr.append(1)
                 else:
@@ -58,26 +56,26 @@ def gamify_input(event):
 # REMOVE UNNECESSARY HTML
 def scrub_text(text):
     # remove static tags
-    new_text = text.replace('&amp;', '&')
-    new_text = new_text.replace('<br />', ' ')
-    new_text = new_text.replace('<br/>', ' ')
-    new_text = new_text.replace('<i>', '')
-    new_text = new_text.replace('</i>', '')
-    new_text = new_text.replace('<u>', '')
-    new_text = new_text.replace('</u>', '')
-    new_text = new_text.replace('<del>', '')
-    new_text = new_text.replace('</del>', '')
-    new_text = new_text.replace('</em>', '')
-    new_text = new_text.replace('</a>', '')
+    new_text = text.replace("&amp;", "&")
+    new_text = new_text.replace("<br />", " ")
+    new_text = new_text.replace("<br/>", " ")
+    new_text = new_text.replace("<i>", "")
+    new_text = new_text.replace("</i>", "")
+    new_text = new_text.replace("<u>", "")
+    new_text = new_text.replace("</u>", "")
+    new_text = new_text.replace("<del>", "")
+    new_text = new_text.replace("</del>", "")
+    new_text = new_text.replace("</em>", "")
+    new_text = new_text.replace("</a>", "")
 
     # remove emphasis tag
-    if not new_text.find('<em') == -1:
-        new_text = new_text[:new_text.find('<em')] + new_text[new_text.find('>') + 2:]
+    if not new_text.find("<em") == -1:
+        new_text = new_text[: new_text.find("<em")] + new_text[new_text.find(">") + 2 :]
 
     # for each hyperlink tag
-    while not new_text.find('<a') == -1:
+    while not new_text.find("<a") == -1:
         # removes every hyperlink reference tag from text
-        new_text = new_text[:new_text.find('<a')] + new_text[new_text.find('">') + 2:]
+        new_text = new_text[: new_text.find("<a")] + new_text[new_text.find('">') + 2 :]
 
     return new_text
 
@@ -88,10 +86,9 @@ def get_img_from_wiki(query, num):
         page = wiki_page(query)
 
     except wikipedia.exceptions.DisambiguationError as de:
-
         try:
             # use first suggestion
-            page = wiki_page((str(de).split('\n'))[1])
+            page = wiki_page((str(de).split("\n"))[1])
         except Exception as e:
             print(e)
             print("some other error")
@@ -162,7 +159,6 @@ def fetch_lines(url):
 
 # PARSED J-ARCHIVE GAME (text only; images are fetched separately)
 class ParsedGame:
-
     CLUES = 61  # 30 jeopardy + 30 double jeopardy + final
     CATEGORIES = 13  # 6 + 6 + final
 
@@ -176,8 +172,7 @@ class ParsedGame:
     # every clue was revealed on air; otherwise the board can't be laid out
     @property
     def is_complete(self):
-        return (len(self.clues) == len(self.responses) == self.CLUES
-                and len(self.categories) == self.CATEGORIES)
+        return len(self.clues) == len(self.responses) == self.CLUES and len(self.categories) == self.CATEGORIES
 
 
 class LibraryError(Exception):
@@ -196,16 +191,16 @@ def parse_game(clue_lines, resp_lines):
     # 'class="clue_text">' match skips them.
     for line in clue_lines:
         if 'class="clue_text">' in line:
-            clue_html.append(line[line.find('class="clue_text">') + 18:line.find('</td>')])
+            clue_html.append(line[line.find('class="clue_text">') + 18 : line.find("</td>")])
         elif 'class="category_name">' in line:
-            categories.append(scrub_text(line[line.find('class="category_name">') + 22:line.find('</td>')]))
+            categories.append(scrub_text(line[line.find('class="category_name">') + 22 : line.find("</td>")]))
         elif 'id="game_title">' in line:
-            info.append(line[line.find('id="game_title"><h1>') + 20:line.find('</h1>')].upper())
+            info.append(line[line.find('id="game_title"><h1>') + 20 : line.find("</h1>")].upper())
 
     # responses page
     for line in resp_lines:
         if 'class="correct_response">' in line:
-            responses.append(scrub_text(line[line.find('class="correct_response">') + 25:line.find('</em>')]))
+            responses.append(scrub_text(line[line.find('class="correct_response">') + 25 : line.find("</em>")]))
 
     clues = [scrub_text(html) for html in clue_html]
     return ParsedGame(categories, clues, clue_html, responses, info)
@@ -214,8 +209,9 @@ def parse_game(clue_lines, resp_lines):
 # PULL GAME DATA FROM J-ARCHIVE
 def parse_jarchive(game_num):
     print(game_num)
-    return parse_game(fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)),
-                      fetch_lines(constants.WEB_ADDR_RESP + str(game_num)))
+    return parse_game(
+        fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)), fetch_lines(constants.WEB_ADDR_RESP + str(game_num))
+    )
 
 
 # DOWNLOAD CLUE IMAGES (j-archive, falling back to a Wikipedia image of the response)
@@ -227,10 +223,12 @@ def fetch_resources(game):
         res.append(get_resource(html, res_count))
 
         # increment resource count if one is supposed to exist
-        if res[i]: res_count += 1
+        if res[i]:
+            res_count += 1
 
         # grab image from Wikipedia if 404ed
-        if res[i] == '404': res[i] = get_img_from_wiki(game.responses[i], i)
+        if res[i] == "404":
+            res[i] = get_img_from_wiki(game.responses[i], i)
 
     return res
 
@@ -246,14 +244,19 @@ def gen_lib_object(parsed):
 
     # each round is its own list of block objects
     for i in range(len(clue)):
-
         lib.append([])
 
         for j in range(len(clue[i])):
             lib[-1].append([])
             for k in range(len(clue[i][j])):
-                lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]),
-                                                 library.Response(resp[i][j][k]), library.Resource(res[i][j][k])))
+                lib[-1][-1].append(
+                    library.Block(
+                        library.Category(cat[i][j][0]),
+                        library.Clue(clue[i][j][k]),
+                        library.Response(resp[i][j][k]),
+                        library.Resource(res[i][j][k]),
+                    )
+                )
 
     return lib
 
@@ -281,8 +284,17 @@ def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
             print("LIBRARY (setup):\tOK")
             return [gen_lib_object([game.categories, game.clues, game.responses, res]), game.info]
 
-        print("GAME " + str(game_num) + " INCOMPLETE: " + str(len(game.clues)) + " clues, "
-              + str(len(game.responses)) + " responses, " + str(len(game.categories)) + " categories")
+        print(
+            "GAME "
+            + str(game_num)
+            + " INCOMPLETE: "
+            + str(len(game.clues))
+            + " clues, "
+            + str(len(game.responses))
+            + " responses, "
+            + str(len(game.categories))
+            + " categories"
+        )
 
         if constants.FORCE_GAME:
             raise LibraryError("forced game " + str(game_num) + " is incomplete or unavailable")
@@ -292,15 +304,15 @@ def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
 
 # DELETE TEMPORARY FILES (MEDIA RESOURCES)
 def dtf():
-    if 'Windows' in platform.system():
-        path = 'temp\\'
+    if "Windows" in platform.system():
+        path = "temp\\"
     else:
-        path = 'temp/'
+        path = "temp/"
 
     num = 0
     while num >= 0:
         try:
-            os.remove(path + 'temp' + str(num) + '.jpg')
+            os.remove(path + "temp" + str(num) + ".jpg")
             num += 1
         except Exception as e:
             print(e)
@@ -317,7 +329,7 @@ def get_buzzers():
     buzzer = None
 
     for i in range(0, pygame.joystick.get_count()):
-        if 'Buzz' in pygame.joystick.Joystick(i).get_name():
+        if "Buzz" in pygame.joystick.Joystick(i).get_name():
             buzzer = pygame.joystick.Joystick(i)
             buzzer.init()
 
@@ -333,11 +345,11 @@ def init_player_objects(active_players):
     num = random.randint(1, constants.NUM_SPRITES)
 
     # add chosen characters to used list
-    for ap_val in active_players: used_nums.append(ap_val)
+    for ap_val in active_players:
+        used_nums.append(ap_val)
 
     # determine characters
     for ap_val in active_players:
-
         # player index
         i = len(players)
 
@@ -347,8 +359,8 @@ def init_player_objects(active_players):
 
         # choose random character
         elif ap_val == 0:
-
-            while num in used_nums: num = random.randint(1, constants.NUM_SPRITES)
+            while num in used_nums:
+                num = random.randint(1, constants.NUM_SPRITES)
 
             p = player.Player(i, num)
 
@@ -368,12 +380,12 @@ def init_player_objects(active_players):
 # TODO: Check if unused
 def gamify_list(list):
     gamified_list = [[], []]
-    split_list = [list[:len(list) // 2], list[len(list) // 2:-1]]
+    split_list = [list[: len(list) // 2], list[len(list) // 2 : -1]]
 
     i = 0
     for round in split_list:
-
-        for x in range(6): gamified_list[i].append([])
+        for x in range(6):
+            gamified_list[i].append([])
 
         j = 0
         for item in round:
@@ -402,4 +414,6 @@ def blit_alpha(target, source, location, opacity):
     temp.blit(source, (0, 0))
     temp.set_alpha(opacity)
     target.blit(temp, location)
+
+
 ##############################################################################
