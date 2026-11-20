@@ -1,7 +1,8 @@
-name: Live j-archive check
+name: Live site checks
 
-# Weekly check that j-archive's pages still parse, since the game depends on
-# scraping them. A failure here usually means j-archive changed its markup.
+# Weekly check that j-archive's pages still parse and Wikipedia's API still
+# returns clue images, since the game depends on both. A failure here usually
+# means one of them changed.
 on:
   schedule:
     - cron: "0 6 * * 1"  # Mondays 06:00 UTC
@@ -23,4 +24,4 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -r requirements.txt pytest
-      - run: pytest tests/test_live_jarchive.py -v
+      - run: pytest tests/test_live_jarchive.py tests/test_live_wikipedia.py -v
