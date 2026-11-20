@@ -207,15 +207,14 @@ class State:
 
     def __str__(self):
 
-        if self.if_state(MAIN_STATE):
-            return "MAIN STATE"
-        elif self.if_state(BET_STATE):
-            return "BET STATE"
-        elif self.if_state(BUZZED_STATE):
-            return "BUZZED STATE"
-        elif self.if_state(SHOW_CLUE_STATE):
-            return "SHOW CLUE STATE"
-        elif self.if_state(SHOW_RESP_STATE):
-            return "SHOW RESPONSE STATE"
-        elif self.if_state(CHECK_STATE):
-            return "CHECK RESPONSE STATE"
+        labels = {
+            MAIN_STATE: "MAIN STATE",
+            BET_STATE: "BET STATE",
+            BUZZED_STATE: "BUZZED STATE",
+            SHOW_CLUE_STATE: "SHOW CLUE STATE",
+            SHOW_RESP_STATE: "SHOW RESPONSE STATE",
+            FINAL_BET_STATE: "FINAL BET STATE",
+            FINAL_CHECK_STATE: "FINAL CHECK STATE",
+            END_STATE: "END STATE",
+        }
+        return labels.get(self.cur_state, "UNKNOWN STATE")
