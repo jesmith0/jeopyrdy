@@ -86,7 +86,7 @@ class Player:
     def setup_bet(self, final=False):
 
         if not final:
-            self.cur_bet = self.get_max_bet
+            self.cur_bet = self.get_max_bet()
             self.is_betting = True
         else:
             self.cur_bet = self.score
