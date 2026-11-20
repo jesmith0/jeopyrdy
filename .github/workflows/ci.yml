@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
       - run: pip install ruff
       - run: ruff check .
       - run: ruff format --check .
@@ -25,14 +25,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Oldest supported (requires-python >= 3.10) and newest Python on Linux;
+        # the versions in between rarely catch anything those two miss.
         os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.14"]
         include:
           # Real speech backends (say / PowerShell SAPI) only exist on these.
           - os: macos-latest
-            python-version: "3.13"
+            python-version: "3.14"
           - os: windows-latest
-            python-version: "3.13"
+            python-version: "3.14"
     env:
       SDL_VIDEODRIVER: dummy
       SDL_AUDIODRIVER: dummy
