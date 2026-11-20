@@ -113,8 +113,9 @@ def main():
             if event.type == constants.END_FJ_EVENT:
                 game.state.fj_timeout = True
 
-            # exit from pygame
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            # exit from pygame: Escape, or a quit request (window close button,
+            # Ctrl+C or SIGTERM, which SDL delivers as a QUIT event)
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
 
                 game_active = False
                 menu_active = False
@@ -176,5 +177,17 @@ def main():
     util.dtf()
 
 
+def run():
+    # Ctrl+C raises KeyboardInterrupt (Python's handler takes precedence over
+    # SDL's). Keep that, since it also interrupts a slow or stuck library setup,
+    # but shut down cleanly instead of crashing with a traceback.
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Interrupted, quitting")
+        pygame.quit()
+        util.dtf()
+
+
 if __name__ == "__main__":
-    main()
+    run()
