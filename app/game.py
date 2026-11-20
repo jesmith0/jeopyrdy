@@ -425,24 +425,8 @@ class Game:
             if skip: self.SCREEN.blit(self.players[i].skip_surface, ((i * 100) + 50, 50))
             i += 1
 
-        # get resource and display/play
-        ### if self.cur_block.if_resource(): ### ACTUAL CHECK WHEN MOVIES AND MUSIC
-        if self.cur_block.resource.surface:
-            ### DETERMINE IF MOVIE, MUSIC, OR IMAGE ###
-            res_surface = self.cur_block.resource.surface
-
-            # resize
-            scale_height = 200.0
-            height = res_surface.get_height()
-            scale_width = res_surface.get_width() * (scale_height / height)
-
-            # res_surface = pygame.transform.smoothscale(res_surface, (scale_width, scale_height), scaled_surf)
-            res_surface = pygame.transform.scale(res_surface, (int(scale_width), int(scale_height)))
-
-            # res_surface = pygame.transform.scale(res_surface, (res_surface.get_width()/2, res_surface.get_height()/2))
-            # self.SCREEN.blit(scaled_surf, (DISPLAY_RES[0]/2 - res_surface.get_width()/2, 400))
-            self.SCREEN.blit(res_surface, (
-            (DISPLAY_RES[0] // 2) - (res_surface.get_width() // 2), DISPLAY_RES[1] - res_surface.get_height() - 20))
+        # clue image (part of the clue itself)
+        self.__blit_resource(self.cur_block.resource)
 
         # blit category and clue to screen
         self.SCREEN.blit(cat_surf, (DISPLAY_RES[0] // 2 - BOARD_SIZE[0] // 2, -200))
@@ -486,8 +470,24 @@ class Game:
             self.SCREEN.blit(incorrect_surf,
                              (main_center_loc[0] + incorrect_surf.get_width(), main_center_loc[1] + 150))
 
+        # image of the answer, only now that it's revealed
+        self.__blit_resource(self.cur_block.response_resource)
+
         # read response
         if self.state.init: self.__ttsx_speak(self.cur_block.response)
+
+    # BLIT A RESOURCE IMAGE, SCALED TO 200PX HIGH, AT THE BOTTOM CENTER
+    def __blit_resource(self, resource):
+
+        res_surface = resource.surface
+        if not res_surface: return
+
+        scale_height = 200.0
+        scale_width = res_surface.get_width() * (scale_height / res_surface.get_height())
+        res_surface = pygame.transform.scale(res_surface, (int(scale_width), int(scale_height)))
+
+        self.SCREEN.blit(res_surface, (
+            (DISPLAY_RES[0] // 2) - (res_surface.get_width() // 2), DISPLAY_RES[1] - res_surface.get_height() - 20))
 
     # BLIT MAIN DISPLAY TO SCREEN
     def __display_main(self):

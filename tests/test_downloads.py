@@ -136,3 +136,45 @@ def test_wiki_lookup_tries_exact_title_before_auto_suggest(monkeypatch):
     calls.clear()
     util.wiki_page("julianne moore typo")
     assert calls == [False, True]
+
+
+def jarchive_pages(image_clue_index):
+    """Minimal j-archive page lines: 13 categories, 61 clues (one with an image), 61 responses."""
+    clue_page = ['<div id="game_title"><h1>Show #1 - Test</h1></div>']
+    clue_page += [f'<td class="category_name">CAT {i}</td>' for i in range(13)]
+    for i in range(61):
+        text = HTTPS_CLUE if i == image_clue_index else f"Clue {i}"
+        clue_page.append(f'<td id="clue_{i}" class="clue_text">{text}</td>')
+    resp_page = [f'<em class="correct_response">Answer {i}</em>' for i in range(61)]
+    return {constants.WEB_ADDR_CLUE: clue_page, constants.WEB_ADDR_RESP: resp_page}
+
+
+def test_wikipedia_answer_image_attached_to_response_not_clue(web, monkeypatch):
+    pages = jarchive_pages(image_clue_index=7)
+    monkeypatch.setattr(util, "fetch_lines", lambda url: pages[url.rsplit("=", 1)[0] + "="])
+    monkeypatch.setattr(constants, "FORCE_GAME", 1)
+    looked_up = []
+    monkeypatch.setattr(util, "get_img_from_wiki",
+                        lambda query, num: looked_up.append(query) or "/tmp/wiki7.jpg")
+
+    cat, clue, resp, res, resp_res, info = util.parse_jarchive()
+
+    # j-archive image 404s (fake web has nothing), so the answer is looked up
+    assert looked_up == ["Answer 7"]
+    assert res[7] is None
+    assert resp_res[7] == "/tmp/wiki7.jpg"
+    assert [r for i, r in enumerate(resp_res) if i != 7] == [None] * 60
+    assert info == ["SHOW #1 - TEST"]
+
+
+def test_jarchive_clue_image_stays_with_clue(web, monkeypatch):
+    pages = jarchive_pages(image_clue_index=7)
+    monkeypatch.setattr(util, "fetch_lines", lambda url: pages[url.rsplit("=", 1)[0] + "="])
+    monkeypatch.setattr(constants, "FORCE_GAME", 1)
+    monkeypatch.setattr(util, "get_img_from_wiki", lambda query, num: pytest.fail("no fallback needed"))
+    web.pages[util.JARCHIVE_IMAGE.search(HTTPS_CLUE).group(1)] = (200, "image/jpeg", JPEG)
+
+    cat, clue, resp, res, resp_res, info = util.parse_jarchive()
+
+    assert res[7].endswith("ja0.jpg")
+    assert resp_res[7] is None

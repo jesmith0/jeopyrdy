@@ -165,7 +165,8 @@ def parse_jarchive():
     cat = []
     clue = []
     resp = []
-    res = []
+    res = []  # clue images
+    resp_res = []  # response (answer) images
     info = []
 
     res_count = 0
@@ -216,11 +217,15 @@ def parse_jarchive():
 
         resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">') + 25:resp[i].find('</em>')])
 
-        # grab image from Wikipedia if 404ed
-        if res[i] == '404': res[i] = get_img_from_wiki(resp[i], i)
+        # clue image missing: look up the response on Wikipedia instead. That
+        # image shows the answer, so it belongs to the response, not the clue.
+        resp_res.append(None)
+        if res[i] == '404':
+            res[i] = None
+            resp_res[i] = get_img_from_wiki(resp[i], i)
 
-    # RETURN LIBRARY
-    return [cat, clue, resp, res, info]
+    # RETURN LIBRARY (info must stay last)
+    return [cat, clue, resp, res, resp_res, info]
 
 
 # GENERATE LIBRARY OBJECT FROM PULLED DATA
@@ -229,6 +234,7 @@ def gen_lib_object(parsed):
     clue = gamify_list(parsed[1])
     resp = gamify_list(parsed[2])
     res = gamify_list(parsed[3])
+    resp_res = gamify_list(parsed[4])
 
     lib = []
 
@@ -241,7 +247,8 @@ def gen_lib_object(parsed):
             lib[-1].append([])
             for k in range(len(clue[i][j])):
                 lib[-1][-1].append(library.Block(library.Category(cat[i][j][0]), library.Clue(clue[i][j][k]),
-                                                 library.Response(resp[i][j][k]), library.Resource(res[i][j][k])))
+                                                 library.Response(resp[i][j][k]), library.Resource(res[i][j][k]),
+                                                 library.Resource(resp_res[i][j][k])))
 
     return lib
 

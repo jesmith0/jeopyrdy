@@ -25,7 +25,8 @@ def make_library():
     clues = [f"Clue number {i}" for i in range(61)]  # 30 + 30 + final
     resps = [f"What is answer {i}?" for i in range(61)]
     res = [None] * 61
-    return util.gen_lib_object([cats, clues, resps, res])
+    resp_res = [None] * 61
+    return util.gen_lib_object([cats, clues, resps, res, resp_res])
 
 
 class Driver:
@@ -213,3 +214,55 @@ def test_clue_times_out_when_nobody_buzzes(driver):
     assert driver.state == constants.MAIN_STATE
     assert (p1.score, p2.score) == (0, 0)
     assert driver.game.LIB[0][0][0].clue_completed()
+
+
+class RecordingScreen(pygame.Surface):
+    """Display surface that records the size of everything blitted onto it."""
+
+    def __init__(self):
+        super().__init__(constants.DISPLAY_RES)
+        self.blitted = []
+
+    def blit(self, source, *args, **kwargs):
+        self.blitted.append(source.get_size())
+        return super().blit(source, *args, **kwargs)
+
+
+def image_block(driver, col, row, clue_image=None, answer_image=None):
+    block = driver.game.LIB[0][col][row]
+    block.resource.surface = clue_image
+    block.response_resource.surface = answer_image
+    return block
+
+
+# resource images are scaled to 200px high, so a 50x25 image is drawn at 400x200,
+# a size nothing else on these screens uses
+IMAGE = pygame.Surface((50, 25))
+DRAWN = (400, 200)
+
+
+def test_answer_image_only_shown_after_response_revealed(driver):
+    image_block(driver, 0, 0, answer_image=IMAGE)
+    screen = driver.game.SCREEN = RecordingScreen()
+
+    driver.move_cursor_to(0, 0)
+    driver.press(P1["buzz"])
+    assert driver.state == constants.SHOW_CLUE_STATE
+    driver.press(P2["buzz"])
+    assert driver.state == constants.BUZZED_STATE
+    assert DRAWN not in screen.blitted  # would give the answer away (#30)
+
+    driver.settle(constants.DELAY)
+    driver.press(P2["buzz"])
+    assert driver.state == constants.SHOW_RESP_STATE
+    assert DRAWN in screen.blitted
+
+
+def test_clue_image_shown_with_clue(driver):
+    image_block(driver, 0, 0, clue_image=IMAGE)
+    screen = driver.game.SCREEN = RecordingScreen()
+
+    driver.move_cursor_to(0, 0)
+    driver.press(P1["buzz"])
+    assert driver.state == constants.SHOW_CLUE_STATE
+    assert DRAWN in screen.blitted

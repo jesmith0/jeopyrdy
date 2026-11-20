@@ -5,12 +5,18 @@ import gen
 
 class Block:
 
-    def __init__(self, category, clue, response, resource):
+    def __init__(self, category, clue, response, resource, response_resource=None):
 
         self.category = category
         self.clue = clue
         self.response = response
+
+        # image that is part of the clue (shown while the clue is up)
         self.resource = resource
+
+        # image looked up from the correct response; shown only once the
+        # response is revealed, since it would give the answer away (#30)
+        self.response_resource = response_resource or Resource(None)
 
     def cat_board_surface(self):
         return self.category.board_surface
