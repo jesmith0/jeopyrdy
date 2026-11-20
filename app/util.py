@@ -160,67 +160,79 @@ def fetch_lines(url):
         return [raw.decode("utf-8", "replace") for raw in page.readlines()]
 
 
-# PULL GAME DATA FROM J-ARCHIVE
-def parse_jarchive():
-    cat = []
-    clue = []
-    resp = []
-    res = []
+# PARSED J-ARCHIVE GAME (text only; images are fetched separately)
+class ParsedGame:
+
+    CLUES = 61  # 30 jeopardy + 30 double jeopardy + final
+    CATEGORIES = 13  # 6 + 6 + final
+
+    def __init__(self, categories, clues, clue_html, responses, info):
+        self.categories = categories
+        self.clues = clues  # scrubbed clue text
+        self.clue_html = clue_html  # raw clue markup (holds media links)
+        self.responses = responses
+        self.info = info
+
+    # every clue was revealed on air; otherwise the board can't be laid out
+    @property
+    def is_complete(self):
+        return (len(self.clues) == len(self.responses) == self.CLUES
+                and len(self.categories) == self.CATEGORIES)
+
+
+class LibraryError(Exception):
+    pass
+
+
+# PARSE J-ARCHIVE GAME PAGES (lists of lines) INTO A ParsedGame
+def parse_game(clue_lines, resp_lines):
+    categories = []
+    clue_html = []
+    responses = []
     info = []
 
-    res_count = 0
-
-    # RANDOMLY GENERATE USEABLE GAME NUMBER
-    if constants.FORCE_GAME:
-        game_num = str(constants.FORCE_GAME)
-    else:
-        game_num = str(random.randint(1, constants.MAX_GAME))
-
-    print(game_num)
-
-    # REDUCE WEBPAGE TO RELEVANT LINES (also sets display window caption)
-    # retrieves categories and clues
-    for line in fetch_lines(constants.WEB_ADDR_CLUE + game_num):
+    # clue page: categories, clues and the title. Hidden response cells are
+    # also class "clue_text" but carry a style attribute, so the exact
+    # 'class="clue_text">' match skips them.
+    for line in clue_lines:
         if 'class="clue_text">' in line:
-            clue.append(line)
-            res.append(None)
+            clue_html.append(line[line.find('class="clue_text">') + 18:line.find('</td>')])
         elif 'class="category_name">' in line:
-            cat.append(line)
+            categories.append(scrub_text(line[line.find('class="category_name">') + 22:line.find('</td>')]))
         elif 'id="game_title">' in line:
             info.append(line[line.find('id="game_title"><h1>') + 20:line.find('</h1>')].upper())
 
-    # retrieves responses
-    for line in fetch_lines(constants.WEB_ADDR_RESP + game_num):
-        if 'class="correct_response">' in line: resp.append(line)
+    # responses page
+    for line in resp_lines:
+        if 'class="correct_response">' in line:
+            responses.append(scrub_text(line[line.find('class="correct_response">') + 25:line.find('</em>')]))
 
-    ### FORMAT LIBRARY INFO ###
+    clues = [scrub_text(html) for html in clue_html]
+    return ParsedGame(categories, clues, clue_html, responses, info)
 
-    # POPULATE CLUES TO LIBRARY
-    for i in range(len(clue)):
 
-        unscrubed_clue = clue[i][clue[i].find('class="clue_text">') + 18:clue[i].find('</td>')]
-        clue[i] = scrub_text(unscrubed_clue)
+# PULL GAME DATA FROM J-ARCHIVE
+def parse_jarchive(game_num):
+    print(game_num)
+    return parse_game(fetch_lines(constants.WEB_ADDR_CLUE + str(game_num)),
+                      fetch_lines(constants.WEB_ADDR_RESP + str(game_num)))
 
-        # attempt to grab resource from j-archive
-        res[i] = get_resource(unscrubed_clue, res_count)
+
+# DOWNLOAD CLUE IMAGES (j-archive, falling back to a Wikipedia image of the response)
+def fetch_resources(game):
+    res = []
+    res_count = 0
+
+    for i, html in enumerate(game.clue_html):
+        res.append(get_resource(html, res_count))
 
         # increment resource count if one is supposed to exist
         if res[i]: res_count += 1
 
-    # POPULATE CATEGORIES TO LIBRARY
-    for i in range(len(cat)):
-        cat[i] = scrub_text(cat[i][cat[i].find('class="category_name">') + 22:cat[i].find('</td>')])
-
-    # POPULATE RESPONSE TO LIBRARY
-    for i in range(len(resp)):
-
-        resp[i] = scrub_text(resp[i][resp[i].find('class="correct_response">') + 25:resp[i].find('</em>')])
-
         # grab image from Wikipedia if 404ed
-        if res[i] == '404': res[i] = get_img_from_wiki(resp[i], i)
+        if res[i] == '404': res[i] = get_img_from_wiki(game.responses[i], i)
 
-    # RETURN LIBRARY
-    return [cat, clue, resp, res, info]
+    return res
 
 
 # GENERATE LIBRARY OBJECT FROM PULLED DATA
@@ -247,17 +259,35 @@ def gen_lib_object(parsed):
 
 
 # SETUP LIBRARY OBJECT
-def lib_setup():
-    # primitive solution to ensure no unseen clues
-    parse_valid = False
+# Tries random games until one is complete (some games have clues that were
+# never revealed on air). Gives up after max_attempts instead of looping
+# forever, and fails fast if a forced game is incomplete.
+MAX_SETUP_ATTEMPTS = 10
 
-    while not parse_valid:
-        parsed_data = parse_jarchive()
-        if len(parsed_data[1]) == 61: parse_valid = True
 
-    print("LIBRARY (setup):\tOK")
+def lib_setup(max_attempts=MAX_SETUP_ATTEMPTS):
+    for _ in range(max_attempts):
+        game_num = constants.FORCE_GAME or random.randint(1, constants.MAX_GAME)
 
-    return [gen_lib_object(parsed_data), parsed_data[-1]]
+        try:
+            game = parse_jarchive(game_num)
+        except OSError as e:  # network errors, timeouts
+            print("COULD NOT FETCH GAME " + str(game_num) + ": " + str(e))
+            continue
+
+        if game.is_complete:
+            # only download images once the game is known to be usable
+            res = fetch_resources(game)
+            print("LIBRARY (setup):\tOK")
+            return [gen_lib_object([game.categories, game.clues, game.responses, res]), game.info]
+
+        print("GAME " + str(game_num) + " INCOMPLETE: " + str(len(game.clues)) + " clues, "
+              + str(len(game.responses)) + " responses, " + str(len(game.categories)) + " categories")
+
+        if constants.FORCE_GAME:
+            raise LibraryError("forced game " + str(game_num) + " is incomplete or unavailable")
+
+    raise LibraryError("no complete game found in " + str(max_attempts) + " attempts")
 
 
 # DELETE TEMPORARY FILES (MEDIA RESOURCES)

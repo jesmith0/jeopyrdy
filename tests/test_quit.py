@@ -29,6 +29,8 @@ def fake_lib_setup():
         pygame.event.post(pygame.event.Event(pygame.QUIT))
     elif {post_event!r} == "escape":
         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE))
+    elif {post_event!r} == "library_error":
+        raise util.LibraryError("no complete game found in 10 attempts")
     return [None, ["SHOW #1 - TEST"]]
 
 util.lib_setup = fake_lib_setup
@@ -79,4 +81,13 @@ def test_ctrl_c_and_sigterm_exit_main_loop(sig):
 
     out = finish(proc)
     assert "EXITED" in out
+    assert "Traceback" not in out
+
+
+def test_library_failure_exits_with_message_not_traceback():
+    proc = start(post_event="library_error")
+    out = finish(proc)
+
+    assert proc.returncode == 1
+    assert "Could not load a game from j-archive: no complete game found" in out
     assert "Traceback" not in out

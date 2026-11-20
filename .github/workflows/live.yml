@@ -1,0 +1,26 @@
+name: Live j-archive check
+
+# Weekly check that j-archive's pages still parse, since the game depends on
+# scraping them. A failure here usually means j-archive changed its markup.
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    env:
+      SDL_VIDEODRIVER: dummy
+      SDL_AUDIODRIVER: dummy
+      JEOPYRDY_LIVE_TESTS: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt pytest
+      - run: pytest tests/test_live_jarchive.py -v
