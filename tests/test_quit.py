@@ -9,6 +9,7 @@ import os
 import signal
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -21,8 +22,11 @@ RUNNER = """
 import sys
 sys.path.insert(0, {app_dir!r})
 import pygame
+import constants
 import util
 import main
+
+constants.TEMP_PATH = {temp_dir!r}
 
 def fake_lib_setup():
     print("READY", flush=True)
@@ -43,9 +47,11 @@ print("EXITED", flush=True)
 TIMEOUT = 60
 
 
-def start(post_event=None):
+def start(post_event=None, temp_dir=None):
     env = dict(os.environ, SDL_VIDEODRIVER="dummy", SDL_AUDIODRIVER="dummy")
-    code = RUNNER.format(app_dir=str(APP_DIR), post_event=post_event)
+    # never touch the real app/res/temp from tests
+    temp_dir = str(temp_dir or tempfile.mkdtemp())
+    code = RUNNER.format(app_dir=str(APP_DIR), post_event=post_event, temp_dir=temp_dir)
     return subprocess.Popen(
         [sys.executable, "-c", code], env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
@@ -93,3 +99,25 @@ def test_library_failure_exits_with_message_not_traceback():
     assert proc.returncode == 1
     assert "Could not load a game from j-archive: no complete game found" in out
     assert "Traceback" not in out
+
+
+def leave_downloads(temp_dir):
+    for name in ("ja0.jpg", "wiki3.png", "wiki12.jpeg"):
+        (temp_dir / name).write_bytes(b"image")
+
+
+@pytest.mark.parametrize("event", ["quit", "library_error"])
+def test_exit_deletes_downloaded_images(tmp_path, event):
+    leave_downloads(tmp_path)
+    finish(start(post_event=event, temp_dir=tmp_path))
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals")
+def test_ctrl_c_deletes_downloaded_images(tmp_path):
+    leave_downloads(tmp_path)
+    proc = start(temp_dir=tmp_path)
+    wait_until_ready(proc)
+    proc.send_signal(signal.SIGINT)
+    finish(proc)
+    assert list(tmp_path.iterdir()) == []

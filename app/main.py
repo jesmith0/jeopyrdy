@@ -172,7 +172,7 @@ def main():
     pygame.quit()
 
     # DELETE TEMP FILES
-    util.dtf()
+    util.clear_temp_files()
 
 
 def run():
@@ -189,11 +189,11 @@ def run():
     except KeyboardInterrupt:
         log.info("interrupted, quitting")
         pygame.quit()
-        util.dtf()
+        util.clear_temp_files()
     except util.LibraryError as e:
         log.error("Could not load a game from j-archive: %s", e)
         pygame.quit()
-        util.dtf()
+        util.clear_temp_files()
         sys.exit(1)
 
 
