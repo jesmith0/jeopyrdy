@@ -24,6 +24,11 @@ ruff check .
 pytest
 ```
 
+Tests run offline. To also check that j-archive's live pages still parse (CI does this weekly):
+```
+JEOPYRDY_LIVE_TESTS=1 pytest tests/test_live_jarchive.py
+```
+
 ## Build
 
 ##### For Mac

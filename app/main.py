@@ -1,3 +1,5 @@
+import sys
+
 import pygame  # FOR GUI
 import constants
 import util
@@ -187,6 +189,11 @@ def run():
         print("Interrupted, quitting")
         pygame.quit()
         util.dtf()
+    except util.LibraryError as e:
+        print("Could not load a game from j-archive: " + str(e))
+        pygame.quit()
+        util.dtf()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
