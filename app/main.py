@@ -1,3 +1,5 @@
+import logging
+import os
 import sys
 
 import pygame  # FOR GUI
@@ -6,6 +8,8 @@ import constants
 import game as g  # Game OBJECT CLASS
 import menu as m  # Menu OBJECT CLASS
 import util
+
+log = logging.getLogger(__name__)
 
 
 def main():
@@ -175,14 +179,19 @@ def run():
     # Ctrl+C raises KeyboardInterrupt (Python's handler takes precedence over
     # SDL's). Keep that, since it also interrupts a slow or stuck library setup,
     # but shut down cleanly instead of crashing with a traceback.
+    logging.basicConfig(
+        level=os.environ.get("JEOPYRDY_LOG_LEVEL", "INFO").upper(),
+        format="%(levelname)s %(name)s: %(message)s",
+    )
+
     try:
         main()
     except KeyboardInterrupt:
-        print("Interrupted, quitting")
+        log.info("interrupted, quitting")
         pygame.quit()
         util.dtf()
     except util.LibraryError as e:
-        print("Could not load a game from j-archive: " + str(e))
+        log.error("Could not load a game from j-archive: %s", e)
         pygame.quit()
         util.dtf()
         sys.exit(1)

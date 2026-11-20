@@ -81,8 +81,6 @@ class Menu:
 
     def set_game_date(self, date):
 
-        print(self.game_date)
-
         self.game_date = date
         self.gamedate_text_surface = gen.menu_item("", self.game_date, False)
 

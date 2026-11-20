@@ -1,7 +1,11 @@
+import logging
+
 import pygame
 
 import constants
 import gen
+
+log = logging.getLogger(__name__)
 
 
 class Block:
@@ -109,8 +113,7 @@ class Resource:
             try:
                 return pygame.image.load(res)
             except Exception as e:
-                print(e)
-                print("image load failed for: " + res)
+                log.warning("image load failed for %s: %s", res, e)
                 return None
 
         else:

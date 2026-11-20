@@ -4,9 +4,12 @@ Each backend is (argv, use_stdin). Text goes over stdin where the command
 supports it so clue text can never be mistaken for a command-line option.
 """
 
+import logging
 import shutil
 import subprocess
 import sys
+
+log = logging.getLogger(__name__)
 
 
 def windows_sapi_script(null_output=False):
@@ -67,7 +70,7 @@ def speak(text, backend=None):
         else:
             proc = subprocess.Popen([*argv, text.lstrip("-")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError as e:
-        print("text-to-speech failed: " + str(e))
+        log.warning("text-to-speech failed: %s", e)
         return None
 
     return proc
